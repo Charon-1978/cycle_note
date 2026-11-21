@@ -1,0 +1,87 @@
+name: cycle_note
+description: "月记 —— 经期与减脂双轨健康记录"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  # 放宽下界，便于与较旧的 Flutter 项目合并
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 状态与路由
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.6.2
+
+  # 数据库：drift + SQLCipher
+  #
+  # 加密链路（2026-11 修正，勿改回）：
+  #   package:sqlite3 3.x 已移除 open.overrideFor，改为 native asset hook
+  #   在构建期选定 .so。默认 source=sqlite3 会下载**普通 SQLite**，
+  #   此时 PRAGMA key 被静默忽略 → 库是明文，而且「能跑通」看不出来。
+  #   所以必须在下面的 hooks.user_defines 里把 source 改成 sqlcipher。
+  #
+  #   同时**不能**再引入 sqlcipher_flutter_libs：它的 AAR 也会产出
+  #   lib/<abi>/libsqlcipher.so，与 hook 产物同名，谁覆盖谁不确定。
+  #   校验：test/database/sqlcipher_available_test.dart 直接断言
+  #   PRAGMA cipher_version 非空，普通 sqlite 会返回空结果集而失败。
+  drift: ^2.20.0
+  # 直接依赖：encrypted_database_opener 要用 sqlite3.Database 做 cipher 校验，
+  # 测试也要直接开库。版本必须与 drift 解析到的一致（见 pubspec.lock）。
+  sqlite3: ^3.5.0
+
+  # 存储与路径
+  flutter_secure_storage: ^9.2.2
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.3
+  path: ^1.9.0
+  intl: ^0.19.0
+  url_launcher: 6.3.0
+  flutter_local_notifications: 19.0.0
+  timezone: 0.10.0
+  home_widget: 0.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  # drift 代码生成
+  drift_dev: ^2.20.0
+  build_runner: ^2.4.13
+
+# -------------------- 依赖钉版（有明确原因，勿随意移除） --------------------
+#
+# 真机/模拟器实测（Android 16 / API 36）发现：App 启动正常，但任何一次
+# 数据库或偏好读写都直接抛
+#   java.lang.ClassNotFoundException: android/content/Context
+# 堆栈落在 dalvik.system.BaseDexClassLoader.findClass，异常前缀
+# "Exception in Java:" 来自 package:jni。
+#
+# 追到上游变更：
+#   · path_provider_android 2.3.0 —— "Changes internal implementation to use JNI"，
+#     其 2.3.1 的 CHANGELOG 自己就写着修 release 下的 ClassNotFoundException；
+#   · shared_preferences_android 2.5.0 —— "Updates internal implementation to use Pigeon JNI"。
+# 这两个包的 JNI 实现需要 native 侧 FindClass 找到 android.content.Context，
+# 在本环境（Flutter 3.44.9 + Android 16 x86_64 模拟器）下失败，导致
+# path_provider / shared_preferences 全部不可用 → 数据库无从创建。
+#
+# 处理：钉到 JNI 化之前的版本区间（仍是 MethodChannel 实现，功能等价）。
+# 上游修复后（两个包都改回稳定 JNI）可移除本段并重新验证。
+dependency_overrides:
+  path_provider_android: ">=2.2.0 <2.3.0"
+  shared_preferences_android: ">=2.4.0 <2.5.0"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/data/
+
+# 构建期配置：把 package:sqlite3 的原生库切成 SQLCipher 版（AES-256）。
+# source 可选：sqlite3（默认，明文）/ sqlite3mc / sqlcipher / source（本地编译）
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlcipher

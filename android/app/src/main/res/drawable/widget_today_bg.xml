@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 小组件背景：白色圆角卡片，压角 14dp 与系统桌面观感一致 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#F2FFFFFF" />
+    <corners android:radius="14dp" />
+</shape>

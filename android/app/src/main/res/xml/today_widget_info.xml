@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 4x1 网格。updatePeriodMillis 30 分钟兜底：记录动作外的变化
+     （如跨天）靠它刷新；记录后走 Flutter 侧主动 updateWidget，不等这个。 -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="60dp"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_today"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" />

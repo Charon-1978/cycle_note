@@ -1,0 +1,51 @@
+﻿code,name,met
+sleep,睡眠,0.95
+rest,静坐/看电视,1.3
+stand,站立,1.8
+office,办公室伏案工作,1.5
+walk_slow,步行 3.2km/h,2.8
+walk_4,步行 4.0km/h,3.0
+walk_48,步行 4.8km/h,3.5
+walk_56,快走 5.6km/h,4.3
+walk_64,快走 6.4km/h,5.0
+hike,徒步/爬山,6.0
+stairs,爬楼梯,4.0
+run_8,慢跑 8km/h,8.3
+run_97,跑步 9.7km/h,9.8
+run_113,跑步 11.3km/h,11.0
+run_129,跑步 12.9km/h,11.8
+bike_16,骑行 <16km/h,4.0
+bike_1619,骑行 16-19km/h,6.8
+bike_1922,骑行 19-22km/h,8.0
+spin,动感单车,8.5
+swim_slow,游泳 慢速,6.0
+swim_mid,游泳 中等,8.3
+swim_fast,游泳 快速,10.0
+breaststroke,蛙泳,10.3
+rope_slow,跳绳 慢速,8.8
+rope_fast,跳绳 快速,12.3
+yoga_hatha,哈达瑜伽,2.5
+yoga_power,力量瑜伽,4.0
+pilates,普拉提,3.0
+taichi,太极,3.0
+strength_general,力量训练 一般,3.5
+strength_heavy,力量训练 大重量,6.0
+bodyweight,自重训练(深蹲/俯卧撑),3.8
+circuit,循环训练,8.0
+hiit,HIIT,8.0
+elliptical,椭圆机,5.0
+rower,划船机 中等,7.0
+aerobics_low,有氧操 低强度,5.0
+aerobics_high,有氧操 高强度,7.3
+dance,跳舞,5.5
+badminton,羽毛球,5.5
+tabletennis,乒乓球,4.0
+basketball,篮球,6.5
+football,足球,7.0
+tennis,网球,7.3
+housework,家务 一般,3.3
+mopping,拖地,3.5
+cooking,做饭,2.5
+shopping,购物,2.3
+dogwalk,遛狗,3.0
+garden,园艺,3.8
