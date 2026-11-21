@@ -18,6 +18,7 @@ import '../features/calendar/pages/calendar_page.dart';
 import '../features/me/pages/data_sources_page.dart';
 import '../features/me/pages/export_page.dart';
 import '../features/me/pages/me_page.dart';
+import '../features/period/pages/period_history_page.dart';
 import '../features/reminders/pages/reminder_page.dart';
 import '../features/today/pages/today_page.dart';
 import '../features/trends/pages/trends_page.dart';
@@ -73,6 +74,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/me/reminder',
         builder: (_, __) => const ReminderPage(),
+      ),
+      GoRoute(
+        path: '/period/history',
+        builder: (_, __) => const PeriodHistoryPage(),
       ),
 
       // ---------- 四 Tab ----------

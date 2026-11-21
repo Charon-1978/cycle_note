@@ -48,6 +48,19 @@ class ExportService {
     '碳水(g)',
   ];
 
+  static const List<String> _periodCycleHeader = [
+    '开始日期',
+    '结束日期',
+    '经期天数',
+    '周期天数',
+  ];
+  static const List<String> _periodDayHeader = [
+    '日期',
+    '经期日',
+    '经量',
+    '痛经',
+  ];
+
   static const String _bom = '\uFEFF';
 
   /// 餐次代码 → 展示名。与 food_log_page 的 kMealLabels 同源含义，
@@ -103,9 +116,51 @@ class ExportService {
     ]);
   }
 
+  /// 经期周期（一段经期一行）。
+  ///
+  /// 结束日期空 = 进行中；周期天数空 = 最后一段（还没有下一段可算）。
+  /// 导入时会用 PeriodHistoryEditor 重算这两个字段，所以它们只是「参考值」，
+  /// 真正的事实是开始/结束日期。
+  String buildPeriodCycleCsv(Iterable<PeriodCycle> rows) {
+    final sorted = [...rows]..sort((a, b) => a.startDate.compareTo(b.startDate));
+    return _assemble(_periodCycleHeader, [
+      for (final r in sorted)
+        [
+          _fmtDate(r.startDate),
+          r.endDate == null ? '' : _fmtDate(r.endDate!),
+          r.periodLength?.toString() ?? '',
+          r.cycleLength?.toString() ?? '',
+        ],
+    ]);
+  }
+
+  /// 经期逐日记录（只导出真正有内容的行：经期日或填过经量/痛经）。
+  String buildPeriodDayCsv(Iterable<DailyRecord> rows) {
+    final kept = rows
+        .where((r) =>
+            r.isPeriodDay ||
+            r.flowLevel != null ||
+            r.painLevel != null)
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    return _assemble(_periodDayHeader, [
+      for (final r in kept)
+        [
+          _fmtDate(r.date),
+          r.isPeriodDay ? '是' : '否',
+          r.flowLevel?.toString() ?? '',
+          r.painLevel?.toString() ?? '',
+        ],
+    ]);
+  }
+
   // ---------- 导出（IO） ----------
 
-  /// 三类各导一个文件到 [outDir]，返回写入的文件路径（顺序：体重/运动/饮食）。
+  /// 把五类数据各导一个文件到 [outDir]，返回写入路径
+  /// （顺序：体重 / 运动 / 饮食 / 经期周期 / 经期逐日）。
+  ///
+  /// 为什么把经期也纳入：Gate 2 的验收是「导出 → 清空 → 导入 往返一致」，
+  /// 只导减肥数据的话，换机后经期历史（产品的另一半）会整体丢失。
   ///
   /// 文件名带导出时刻，多次导出互不覆盖；不删除旧导出——数据主权工具
   /// 默认"只增不删"，删除交给用户自己做。
@@ -121,6 +176,8 @@ class ExportService {
     final weights = await db.select(db.weightLogs).get();
     final exercises = await db.select(db.exerciseLogs).get();
     final meals = await db.select(db.mealLogs).get();
+    final cycles = await db.select(db.periodCycles).get();
+    final days = await db.select(db.dailyRecords).get();
 
     Future<File> write(String name, String content) async {
       final f = File('${outDir.path}${Platform.pathSeparator}$name');
@@ -136,6 +193,9 @@ class ExportService {
       await write('yueji_weight_$stamp.csv', buildWeightCsv(weights)),
       await write('yueji_exercise_$stamp.csv', buildExerciseCsv(exercises)),
       await write('yueji_meal_$stamp.csv', buildMealCsv(meals)),
+      await write(
+          'yueji_period_cycles_$stamp.csv', buildPeriodCycleCsv(cycles)),
+      await write('yueji_period_days_$stamp.csv', buildPeriodDayCsv(days)),
     ];
   }
 
@@ -169,6 +229,11 @@ class ExportService {
       '${t.day.toString().padLeft(2, '0')} '
       '${t.hour.toString().padLeft(2, '0')}:'
       '${t.minute.toString().padLeft(2, '0')}';
+
+  /// 只到日期（经期表用；时分秒对经期无意义，还会让导入解析变复杂）。
+  String _fmtDate(DateTime t) =>
+      '${t.year}-${t.month.toString().padLeft(2, '0')}-'
+      '${t.day.toString().padLeft(2, '0')}';
 
   /// 数值统一两位以内小数，去掉无意义的尾零（0.30 → 0.3）。
   String _num(double v) {

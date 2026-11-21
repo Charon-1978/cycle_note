@@ -154,7 +154,7 @@ void main() {
       if (await tmp.exists()) await tmp.delete(recursive: true);
     });
 
-    test('写出 3 个文件，文件字节以 UTF-8 BOM 开头，无密钥内容', () async {
+    test('写出 5 个文件，文件字节以 UTF-8 BOM 开头，无密钥内容', () async {
       await db.into(db.weightLogs).insert(
             WeightLogsCompanion.insert(
               recordedAt: DateTime(2026, 1, 5),
@@ -163,7 +163,8 @@ void main() {
           );
 
       final files = await service.exportAll(db, tmp);
-      expect(files, hasLength(3));
+      // 体重 / 运动 / 饮食 / 经期周期 / 经期逐日
+      expect(files, hasLength(5));
       expect(files.every((f) => f.existsSync()), isTrue);
 
       for (final f in files) {
@@ -186,11 +187,13 @@ void main() {
       expect(files[0].path.contains('weight'), isTrue);
       expect(files[1].path.contains('exercise'), isTrue);
       expect(files[2].path.contains('meal'), isTrue);
+      expect(files[3].path.contains('period_cycles'), isTrue);
+      expect(files[4].path.contains('period_days'), isTrue);
     });
 
     test('空库也能导出（只有表头，不崩）', () async {
       final files = await service.exportAll(db, tmp);
-      expect(files, hasLength(3));
+      expect(files, hasLength(5));
       final text = utf8.decode(files[0].readAsBytesSync().sublist(3));
       expect(text, '记录时间,体重(kg),体脂率(%),备注\r\n');
     });

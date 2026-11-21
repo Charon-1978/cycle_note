@@ -82,6 +82,14 @@ class MePage extends ConsumerWidget {
           ),
           const Divider(height: 1),
           ListTile(
+            leading: const Icon(Icons.history),
+            title: const Text('经期历史'),
+            subtitle: const Text('全部经期记录 · 平均周期与经期天数'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/period/history'),
+          ),
+          const Divider(height: 1),
+          ListTile(
             leading: const Icon(Icons.notifications_outlined),
             title: const Text('每日提醒'),
             subtitle: const Text('每天固定时间提醒记录'),
@@ -90,9 +98,9 @@ class MePage extends ConsumerWidget {
           ),
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.ios_share),
-            title: const Text('导出数据'),
-            subtitle: const Text('体重 / 运动 / 饮食 → CSV（Excel 可读）'),
+            leading: const Icon(Icons.storage_outlined),
+            title: const Text('数据管理'),
+            subtitle: const Text('导出 / 导入 CSV · 恢复本机备份'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/me/export'),
           ),

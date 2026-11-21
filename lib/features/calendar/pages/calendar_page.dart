@@ -17,6 +17,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_tokens.dart';
@@ -76,11 +77,21 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
           const SizedBox(height: AppTokens.spaceM),
           const PhaseLegend(),
           const SizedBox(height: AppTokens.spaceXl),
-          Text(
-            '最近周期',
-            style: AppTokens.title.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+          Row(
+            children: [
+              Text(
+                '最近周期',
+                style: AppTokens.title.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const Spacer(),
+              if (cycles.isNotEmpty)
+                TextButton(
+                  onPressed: () => context.push('/period/history'),
+                  child: const Text('全部历史'),
+                ),
+            ],
           ),
           const SizedBox(height: AppTokens.spaceS),
           if (cycles.isEmpty)
