@@ -4,7 +4,7 @@
 //
 // 交互刻意做得"手点一次、过程可见、失败可解释"：
 //   · 不自动检查（省电 + 隐私：没点就不联网）；
-//   · 检测阶段显示正在试哪个通道（GitHub / NASHub），失败原因就地显示；
+//   · 检测阶段显示正在试哪个通道（GitHub / jsDelivr），失败原因就地显示；
 //   · 下载显示百分比与来源；sha256 不符会自动换下一个地址重下；
 //   · 装之前先检查"安装未知来源应用"权限，没有就引导去系统设置，而不是直接报错。
 
@@ -146,7 +146,7 @@ class _UpdatePageState extends ConsumerState<UpdatePage> {
                 Text('v$kAppVersion', style: AppTokens.headline),
                 const SizedBox(height: AppTokens.spaceM),
                 Text(
-                  '更新检测走两条线：先 GitHub，拉不到再换 NASHub（较慢）。'
+                  '更新检测走两条线：先 GitHub 直连，拉不到再换 jsDelivr 镜像（同源内容）。'
                   '只有你点「检查更新」时才会联网。',
                   style: AppTokens.caption.copyWith(
                     color: scheme.onSurface.withAlpha(150),

@@ -50,7 +50,7 @@ void main() {
           'version': '1.2.0',
           'apkUrl': 'https://github.com/o/r/releases/download/v1.2.0/a.apk',
           'notes': '修复补记日期限制',
-          'fallbackApkUrl': 'https://nas.example.com/nashub/yueji/a.apk',
+          'fallbackApkUrl': 'https://cdn.example.com/mirror/yueji/a.apk',
           'sha256': 'a' * 64,
           'size': 31707405,
           'publishedAt': '2026-11-23T10:00:00Z',
@@ -60,7 +60,7 @@ void main() {
       final m = UpdateManifest.fromJson(base());
       expect(m.version, '1.2.0');
       expect(m.notes, '修复补记日期限制');
-      expect(m.fallbackApkUrl, contains('nashub'));
+      expect(m.fallbackApkUrl, contains('mirror'));
       expect(m.sha256, 'a' * 64);
       expect(m.sizeBytes, 31707405);
       expect(m.publishedAt, isNotNull);

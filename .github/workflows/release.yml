@@ -8,7 +8,6 @@
 # 需要配置的仓库 Secrets（Settings → Secrets and variables → Actions）：
 #   KEYSTORE_BASE64   release keystore 的 base64（`base64 -w0 key.jks`）
 #   KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD
-#   NAS_DEPLOY_HOOK  （可选）NASHub 的 webhook / rsync 触发地址，留空则只发 GitHub
 
 name: release
 
@@ -82,7 +81,6 @@ jobs:
             "version": "${VERSION}",
             "notes": "$(git log -1 --pretty=%s | sed 's/"/\\"/g')",
             "apkUrl": "https://github.com/${REPO}/releases/download/v${VERSION}/yueji-${VERSION}-arm64.apk",
-            "fallbackApkUrl": "https://dl.13146600.xyz/yueji/yueji-${VERSION}-arm64.apk",
             "sha256": "${SHA}",
             "size": ${SIZE},
             "publishedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -96,8 +94,3 @@ jobs:
           git add update/latest.json
           git commit -m "chore(update): latest.json → ${VERSION}" || echo "no changes"
           git push origin main
-
-      # 可选：通知 NASHub 拉最新 APK（拼装失败也不影响 GitHub 通道）
-      - name: Trigger NASHub mirror
-        if: ${{ secrets.NAS_DEPLOY_HOOK != '' }}
-        run: curl -fsS -X POST "${{ secrets.NAS_DEPLOY_HOOK }}?version=${GITHUB_REF_NAME#v}" || true

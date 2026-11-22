@@ -1,27 +1,22 @@
 ﻿# _tools/publish_update.ps1
 #
-# 一条命令完成「构建 → 计算 sha256 → 写 update/latest.json → 拷贝到 NASHub 目录」。
+# 一条命令完成「构建 → 计算 sha256 → 写 update/latest.json」。
 #
 # 用法（在本机跑）：
 #   powershell -ExecutionPolicy Bypass -File _tools/publish_update.ps1 `
 #       -Version 1.1.0 -Notes "修复补记日期限制" `
-#       -NasDir "Z:\nashub\yueji" `
 #       -GitHubRepo "yourname/cycle_note"
 #
 # 说明：
 #   · GitHub 路径只写 update/latest.json 里的 apkUrl；真正的上传用 `gh release create`
 #     （脚本会提示命令，不替你 push，避免误发）；
-#   · NASHub 路径是把 APK + latest.json 拷到 NAS 挂载目录（SMB 映射成盘符即可），
-#     静态服务指向该目录，URL 就是 https://<nas>/nashub/yueji/latest.json。
 #
 # 兼容 Windows PowerShell 5.1（UTF-8 BOM 保存）。
 
 param(
     [Parameter(Mandatory = $true)][string]$Version,
     [string]$Notes = '',
-    [string]$NasDir = '',
     [string]$GitHubRepo = 'YOUR_GITHUB/cycle_note',
-    [string]$NasBaseUrl = 'https://YOUR_NAS_DOMAIN/nashub/yueji'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -51,13 +46,11 @@ $size = (Get-Item $distApk).Length
 Write-Output "==> sha256=$hash size=$size"
 
 $ghUrl = "https://github.com/$GitHubRepo/releases/download/v$ver/$assetName"
-$nasUrl = "$NasBaseUrl/$assetName"
 
 $manifest = [ordered]@{
     version        = $ver
     notes          = $Notes
     apkUrl         = $ghUrl
-    fallbackApkUrl = $nasUrl
     sha256         = $hash
     size           = $size
     publishedAt    = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -82,14 +75,6 @@ foreach ($f in @($pubspec, $cfg)) {
 }
 Write-Output '==> 已同步 pubspec.yaml 与 update_config.dart 的版本号'
 
-if ($NasDir -and (Test-Path $NasDir)) {
-    Copy-Item $distApk (Join-Path $NasDir $assetName) -Force
-    Copy-Item $manifestPath (Join-Path $NasDir 'latest.json') -Force
-    Write-Output "==> 已拷贝到 NASHub：$NasDir"
-}
-elseif ($NasDir) {
-    Write-Warning "NASHub 目录不存在，跳过拷贝：$NasDir"
-}
 
 Write-Output ''
 Write-Output '下一步（GitHub 通道）：'

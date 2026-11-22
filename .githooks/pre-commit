@@ -1,25 +1,46 @@
-﻿#!/bin/sh
+#!/bin/sh
 # .githooks/pre-commit
 #
-# 提交前跑一次隐私/密钥自检（_tools/privacy_scan.ps1）。
-# 启用：git config core.hooksPath .githooks
+# 提交前自动跑隐私审计，覆盖四类风险：
+#   1. 敏感文件（keystore / key.properties / .env / 私钥 / 凭证）
+#   2. 代码硬编码（GitHub PAT / AWS AK / Google API Key / 私钥头 / 明文密码）
+#   3. 个人信息（手机号 / 真实邮箱 / 身份证）
+#   4. 本地痕迹（绝对路径 / 内网 IP / localhost 端口）
 #
-# 有阻断项（明文凭据、会被提交的 keystore/APK）时返回非 0，提交被拦下。
-# 想临时跳过：git commit --no-verify
+# 启用：git config core.hooksPath .githooks
+# 临时跳过：git commit --no-verify
 
-SCAN="_tools/privacy_scan.ps1"
-if [ ! -f "$SCAN" ]; then
-  echo "[pre-commit] 没找到 $SCAN，跳过自检"
+PY=""
+for c in python3 python py; do
+  if command -v "$c" >/dev/null 2>&1; then PY="$c"; break; fi
+done
+
+if [ -z "$PY" ]; then
+  echo "[privacy] 未找到 python，跳过审计（建议安装 Python 3 后再提交）" >&2
   exit 0
 fi
 
-if command -v pwsh >/dev/null 2>&1; then
-  pwsh -NoProfile -File "$SCAN"
-elif command -v powershell.exe >/dev/null 2>&1; then
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCAN"
+SCRIPT="$(dirname "$0")/../_tools/privacy_audit.py"
+if [ ! -f "$SCRIPT" ]; then
+  echo "[privacy] 没找到 $SCRIPT，跳过审计" >&2
+  exit 0
+fi
+
+echo "[privacy] 运行隐私审计..."
+"$PY" "$SCRIPT" . 2>&1
+rc=$?
+
+if [ $rc -eq 2 ]; then
+  echo "" >&2
+  echo "[privacy] ✘ 发现严重问题（敏感文件或密钥）——提交已阻止" >&2
+  echo "[privacy]   确认无误可临时绕过：git commit --no-verify" >&2
+  exit 1
+elif [ $rc -eq 1 ]; then
+  echo "" >&2
+  echo "[privacy] ⚠ 有需人工确认的项目，请检查后继续" >&2
+  exit 0
 else
-  echo "[pre-commit] 没找到 PowerShell，跳过自检"
-  exit 0
+  echo "[privacy] ✔ 通过"
 fi
 
-exit $?
+exit 0

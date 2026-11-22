@@ -1,8 +1,8 @@
 ﻿// test/update/update_service_test.dart
 //
 // 双通道策略的验收（用 MockClient，不碰真实网络）：
-//   1) GitHub 可用 → 用 GitHub，不再请求 NASHub；
-//   2) GitHub 500 / 超时 / JSON 坏 → 自动切 NASHub；
+//   1) GitHub 可用 → 用 GitHub，不再请求镜像；
+//   2) GitHub 500 / 超时 / JSON 坏 → 自动切 jsDelivr 镜像；
 //   3) 两条都失败 → error 里能看到两个通道的原因；
 //   4) 通道可用但版本不新 → hasUpdate == false（不再打兜底通道）；
 //   5) 下载：主地址失败 → 换 fallback；sha256 不符 → 也换 fallback。
@@ -21,7 +21,7 @@ import 'package:cycle_note/features/update/update_manifest.dart';
 import 'package:cycle_note/features/update/update_service.dart';
 
 const _githubManifest = 'https://raw.githubusercontent.com/o/r/main/update/latest.json';
-const _nasManifest = 'https://nas.example.com/nashub/yueji/latest.json';
+const _mirrorManifest = 'https://cdn.example.com/mirror/yueji/latest.json';
 
 String _manifestJson({
   String version = '1.2.0',
@@ -66,12 +66,12 @@ void main() {
   UpdateService serviceWith(MockClient client) => UpdateService(
         client: client,
         githubUrl: _githubManifest,
-        nasUrl: _nasManifest,
+        mirrorUrl: _mirrorManifest,
         currentVersion: '1.0.0',
       );
 
   group('检测', () {
-    test('GitHub 可用 → 用 GitHub，且不请求 NASHub', () async {
+    test('GitHub 可用 → 用 GitHub，且不请求镜像', () async {
       final client = MockClient((req) async {
         requests.add(req.url.toString());
         return http.Response(_manifestJson(), 200);
@@ -84,26 +84,26 @@ void main() {
       expect(requests, [_githubManifest]);
     });
 
-    test('GitHub 500 → 自动切 NASHub', () async {
+    test('GitHub 500 → 自动切镜像', () async {
       final client = MockClient((req) async {
         requests.add(req.url.toString());
         if (req.url.toString() == _githubManifest) {
           return http.Response('boom', 500);
         }
         return http.Response(
-          _manifestJson(apkUrl: 'https://nas.example.com/nashub/yueji/a.apk'),
+          _manifestJson(apkUrl: 'https://cdn.example.com/mirror/yueji/a.apk'),
           200,
         );
       });
 
       final r = await serviceWith(client).check();
       expect(r.hasUpdate, isTrue);
-      expect(r.source, UpdateSource.nas);
-      expect(r.triedSources, [UpdateSource.github, UpdateSource.nas]);
-      expect(requests, [_githubManifest, _nasManifest]);
+      expect(r.source, UpdateSource.mirror);
+      expect(r.triedSources, [UpdateSource.github, UpdateSource.mirror]);
+      expect(requests, [_githubManifest, _mirrorManifest]);
     });
 
-    test('GitHub 返回坏 JSON → 切 NASHub', () async {
+    test('GitHub 返回坏 JSON → 切镜像', () async {
       final client = MockClient((req) async {
         if (req.url.toString() == _githubManifest) {
           return http.Response('{not json', 200);
@@ -112,7 +112,7 @@ void main() {
       });
 
       final r = await serviceWith(client).check();
-      expect(r.source, UpdateSource.nas);
+      expect(r.source, UpdateSource.mirror);
       expect(r.hasUpdate, isTrue);
     });
 
@@ -127,7 +127,7 @@ void main() {
       final r = await serviceWith(client).check();
       expect(r.hasUpdate, isFalse);
       expect(r.error, contains('GitHub'));
-      expect(r.error, contains('NASHub'));
+      expect(r.error, contains('jsDelivr'));
     });
 
     test('通道可用但版本相同 → 无更新，且不再请求兜底通道', () async {
@@ -171,33 +171,33 @@ void main() {
         if (req.url.toString().contains('github.com')) {
           return http.Response('missing', 404);
         }
-        return http.Response.bytes(utf8.encode('NASDATA'), 200);
+        return http.Response.bytes(utf8.encode('MIRRORDATA'), 200);
       });
 
       final file = await serviceWith(client).download(
-        manifestWith(fallback: 'https://nas.example.com/nashub/a.apk'),
+        manifestWith(fallback: 'https://cdn.example.com/mirror/a.apk'),
       );
-      expect(await file.readAsString(), 'NASDATA');
+      expect(await file.readAsString(), 'MIRRORDATA');
       expect(requests, hasLength(2));
     });
 
     test('主地址内容 sha256 不符 → 丢弃并换 fallback（兜底内容正确）', () async {
-      final good = sha256.convert(utf8.encode('NASDATA')).toString();
+      final good = sha256.convert(utf8.encode('MIRRORDATA')).toString();
       final client = MockClient((req) async {
         requests.add(req.url.toString());
         if (req.url.toString().contains('github.com')) {
           return http.Response.bytes(utf8.encode('GITHUB'), 200);
         }
-        return http.Response.bytes(utf8.encode('NASDATA'), 200);
+        return http.Response.bytes(utf8.encode('MIRRORDATA'), 200);
       });
 
       final file = await serviceWith(client).download(
         manifestWith(
-          fallback: 'https://nas.example.com/nashub/a.apk',
+          fallback: 'https://cdn.example.com/mirror/a.apk',
           sha256: good,
         ),
       );
-      expect(await file.readAsString(), 'NASDATA');
+      expect(await file.readAsString(), 'MIRRORDATA');
       expect(requests, hasLength(2), reason: '主地址 hash 不符后应换兜底');
     });
     test('两个地址都拿不到 → 抛 UpdateDownloadException', () async {
@@ -205,7 +205,7 @@ void main() {
 
       expect(
         () => serviceWith(client).download(
-          manifestWith(fallback: 'https://nas.example.com/nashub/a.apk'),
+          manifestWith(fallback: 'https://cdn.example.com/mirror/a.apk'),
         ),
         throwsA(isA<UpdateDownloadException>()),
       );

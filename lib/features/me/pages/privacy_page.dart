@@ -61,7 +61,7 @@ class PrivacyPage extends StatelessWidget {
             body: '· 通知：发送每日提醒，可随时在应用内或系统设置里关闭\n'
                 '· 精确闹钟、开机自启：让提醒按时触发，并在重启后自动恢复\n'
                 '· 振动：提醒时的触感反馈\n'
-                '· 网络（INTERNET）：仅在你点「检查更新」时访问 GitHub / NASHub，'
+                '· 网络（INTERNET）：仅在你点「检查更新」时访问 GitHub（含 jsDelivr 镜像），'
                 '下载新版本安装包\n'
                 '· 安装应用：让你把下载好的新版本装上，系统会弹窗确认',
           ),

@@ -1,8 +1,7 @@
 {
   "version": "1.1.0",
-  "notes": "新增在线更新（GitHub 优先 / NASHub 兜底）、补记流程改为先选开始日再选结束日、日历左右滑动切月、横屏与大屏自适应",
+  "notes": "新增在线更新（GitHub 直连 + jsDelivr 镜像检测）、补记流程改为先选开始日再选结束日、日历左右滑动切月、横屏与大屏自适应",
   "apkUrl": "https://github.com/Charon-1978/cycle_note/releases/download/v1.1.0/yueji-1.1.0-arm64.apk",
-  "fallbackApkUrl": "https://dl.13146600.xyz/yueji/yueji-1.1.0-arm64.apk",
   "sha256": "11a327e47dab60917180a61cdf091e34fad828fb03bb4324e9545eef7c227861",
   "size": 31970341,
   "publishedAt": "2026-11-22T14:54:30Z"

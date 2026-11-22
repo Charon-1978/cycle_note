@@ -3,23 +3,26 @@
 // 在线更新的**纯逻辑层**（无 IO、无 Flutter 依赖），便于单测锁死三件事：
 //   1) manifest JSON 的字段校验（缺字段/类型错 → 明确报错，而不是静默当成"无更新"）；
 //   2) 版本号比较（1.10.0 > 1.9.0，v 前缀、两段版本 1.2 都要能处理）；
-//   3) 双通道数据结构：GitHub 优先，NASHub 兜底。
+//   3) 双通道数据结构：GitHub 直连优先，jsDelivr 镜像兜底（同源内容）。
 
-/// 更新通道。检测时按 [UpdateSource.github] → [UpdateSource.nas] 顺序尝试。
+/// 更新通道。检测时按 [UpdateSource.github] → [UpdateSource.mirror] 顺序尝试。
+///
+/// 两条通道的**内容来源都是 GitHub 仓库**，区别只在分发路径：
+/// GitHub raw 直连 / jsDelivr CDN。不存在自建服务器。
 enum UpdateSource {
-  /// 主通道：GitHub（raw 里的 latest.json / Release 里的 APK）
+  /// 主通道：GitHub raw（latest.json）+ GitHub Release（APK）
   github,
 
-  /// 兜底通道：自建 NASHub（速度慢，但国内可达）
-  nas;
+  /// 镜像通道：jsDelivr 对同一仓库的 CDN 加速
+  mirror;
 
   String get label => switch (this) {
         UpdateSource.github => 'GitHub',
-        UpdateSource.nas => 'NASHub',
+        UpdateSource.mirror => 'jsDelivr',
       };
 }
 
-/// 版本清单。两端（GitHub / NASHub）用**同一份** JSON 结构，
+/// 版本清单。GitHub 与 jsDelivr 镜像用**同一份** JSON 结构，
 /// 差别只在 `apkUrl` 是否需要改成本地镜像地址。
 class UpdateManifest {
   const UpdateManifest({
@@ -41,7 +44,7 @@ class UpdateManifest {
   /// 更新说明（纯文本，按行显示）。
   final String notes;
 
-  /// 备用下载地址（NASHub 镜像）。主地址失败时使用。
+  /// 备用下载地址（可选，同源镜像）。主地址失败时使用。
   final String? fallbackApkUrl;
 
   /// 小写十六进制的 sha256；缺失则不校验。

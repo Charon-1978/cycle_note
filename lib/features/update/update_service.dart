@@ -2,10 +2,12 @@
 //
 // 在线更新的 IO 层：拉 manifest、比较版本、下载 APK、校验 sha256、交给系统安装。
 //
-// 双通道策略（用户要求）：
-//   1) 先请求 GitHub 的 latest.json；成功且版本更新 → 用 GitHub 的 apkUrl 下载；
-//   2) GitHub 拉不到（超时 / 4xx / JSON 坏）→ 改请求 NASHub 的 latest.json；
+// 通道策略（2026-11 起：完全脱钩自建服务器，只发 GitHub）：
+//   1) 先请求 GitHub raw 的 latest.json；成功且版本更新 → 用 GitHub 的 apkUrl 下载；
+//   2) GitHub 拉不到（超时 / 4xx / JSON 坏）→ 改请求 jsDelivr 镜像的 latest.json
+//      （内容同源 GitHub，只是 CDN 不同）；
 //   3) 下载阶段同样兜底：主 apkUrl 失败（任意环节，含 sha256 不符）→ 换 fallbackApkUrl。
+//   两条链路的内容完全一致，版本与 sha256 由 manifest 保证。
 //
 // 为什么把 http.Client 注入进来：单测用 MockClient 直接造 200/500/超时，
 // 不需要跑真实网络（AGENTS.md：测试不许依赖外网）。
@@ -47,25 +49,25 @@ class UpdateService {
   UpdateService({
     http.Client? client,
     this.githubUrl = kUpdateUrlGitHub,
-    this.nasUrl = kUpdateUrlNas,
+    this.mirrorUrl = kUpdateUrlMirror,
     this.currentVersion = kAppVersion,
   }) : _client = client ?? http.Client();
 
   final http.Client _client;
   final String githubUrl;
-  final String nasUrl;
+  final String mirrorUrl;
   final String currentVersion;
 
   static const MethodChannel _channel = MethodChannel('com.yueji.note/update');
 
-  /// 依次尝试 GitHub → NASHub。两条都失败才返回 error。
+  /// 依次尝试 GitHub → jsDelivr 镜像。两条都失败才返回 error。
   Future<UpdateCheckResult> check() async {
     final tried = <UpdateSource>[];
     final errors = <String>[];
 
     for (final (source, url, timeout) in <(UpdateSource, String, Duration)>[
       (UpdateSource.github, githubUrl, kUpdateCheckTimeoutGitHub),
-      (UpdateSource.nas, nasUrl, kUpdateCheckTimeoutNas),
+      (UpdateSource.mirror, mirrorUrl, kUpdateCheckTimeoutMirror),
     ]) {
       tried.add(source);
       try {
@@ -77,7 +79,7 @@ class UpdateService {
             triedSources: tried,
           );
         }
-        // 通道可用但已是最新：不必再看兜底通道
+        // 通道可用但已是最新：不必再看镜像通道
         return UpdateCheckResult(source: source, triedSources: tried);
       } catch (e) {
         errors.add('${source.label}: ${_shortError(e)}');

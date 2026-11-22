@@ -158,12 +158,12 @@ class MePage extends ConsumerWidget {
                           onTap: () => _pickThemeMode(context, ref, mode),
                         ),
                         const _Divider(),
-                        // 在线更新（2026-11-22）：GitHub 优先、NASHub 兜底
+                        // 在线更新（2026-11-22）：GitHub 直连优先、jsDelivr 镜像兜底
                         _MenuTile(
                           icon: Icons.system_update_outlined,
                           tint: colors.weightUp,
                           title: '检查更新',
-                          subtitle: '当前 v$kAppVersion · GitHub / NASHub 双通道',
+                          subtitle: '当前 v$kAppVersion · GitHub / jsDelivr 双通道',
                           onTap: () => context.push('/me/update'),
                         ),
                         const _Divider(),
