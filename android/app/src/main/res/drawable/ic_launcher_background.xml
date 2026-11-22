@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自适应图标背景：与位图图标同色系的玫瑰渐变 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:startColor="#F4B6C2"
+        android:endColor="#C2545E"
+        android:type="linear" />
+</shape>

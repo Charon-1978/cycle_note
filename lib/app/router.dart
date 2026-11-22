@@ -18,6 +18,7 @@ import '../features/calendar/pages/calendar_page.dart';
 import '../features/me/pages/data_sources_page.dart';
 import '../features/me/pages/export_page.dart';
 import '../features/me/pages/me_page.dart';
+import '../features/me/pages/privacy_page.dart';
 import '../features/period/pages/period_history_page.dart';
 import '../features/reminders/pages/reminder_page.dart';
 import '../features/today/pages/today_page.dart';
@@ -66,6 +67,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/me/data-sources',
         builder: (_, __) => const DataSourcesPage(),
+      ),
+      GoRoute(
+        path: '/me/privacy',
+        builder: (_, __) => const PrivacyPage(),
       ),
       GoRoute(
         path: '/me/export',

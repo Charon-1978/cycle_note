@@ -108,7 +108,7 @@ class MePage extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('关于'),
-            subtitle: const Text('免责声明 · 数据来源 · 版本'),
+            subtitle: const Text('免责声明 · 数据来源 · 隐私政策 · 版本'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/me/data-sources'),
           ),

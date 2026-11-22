@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- P0-1：Flutter 的 debug/profile 模板自带该权限，release 模板不带。
-         缺少它会导致 release 包一切网络请求抛 SocketException（AI 功能失效）。
-         这是本 App 唯一的联网用途：用户自行配置的 OpenAI 兼容接口。 -->
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 刻意**不申请** INTERNET 权限。
+         原计划的 AI 模块未纳入本期，应用内没有任何网络请求；
+         「数据来源」页的外链由系统浏览器打开，不需要宿主联网权限。
+         最小权限是隐私承诺里可以写死的一条：用户可以自己去系统设置里核对。 -->
 
     <!-- P3-2 每日提醒：本地通知 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>

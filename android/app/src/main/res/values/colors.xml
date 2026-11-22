@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 启动画面用的品牌色。与 ic_launcher_background 的渐变同色系，
+     保证「点图标 → 启动页 → 首帧」三段颜色不跳。 -->
+<resources>
+    <color name="launch_background">#C2545E</color>
+    <color name="launch_background_night">#7A2E38</color>
+</resources>

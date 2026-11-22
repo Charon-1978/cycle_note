@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- 启动画面（Android 11 及以下）：品牌底色 + 居中月牙。
+     月牙复用 adaptive icon 的前景图（内容已按 66% 安全区缩小），
+     用 120dp 的方框限制大小，避免在高密度屏上顶满。 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@android:color/white" />
-
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
+    <item android:drawable="@color/launch_background" />
+    <item
+        android:width="120dp"
+        android:height="120dp"
+        android:gravity="center">
         <bitmap
-            android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+            android:gravity="fill"
+            android:src="@mipmap/ic_launcher_foreground" />
+    </item>
 </layer-list>

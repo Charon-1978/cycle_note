@@ -12,6 +12,7 @@
 //   · 每条注明数据在本应用里的用途，让用户知道"我的哪个数字是它算的"。
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/theme/app_tokens.dart';
@@ -97,6 +98,12 @@ class DataSourcesPage extends StatelessWidget {
             style: AppTokens.caption.copyWith(
               color: scheme.onSurface.withAlpha(140),
             ),
+          ),
+          const SizedBox(height: AppTokens.cardGap),
+          OutlinedButton.icon(
+            onPressed: () => context.push('/me/privacy'),
+            icon: const Icon(Icons.privacy_tip_outlined),
+            label: const Text('查看隐私政策'),
           ),
         ],
       ),

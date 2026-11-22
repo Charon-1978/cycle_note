@@ -1,4 +1,4 @@
-package com.example.cycle_note
+package com.yueji.note
 
 import io.flutter.embedding.android.FlutterActivity
 
