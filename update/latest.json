@@ -1,8 +1,8 @@
 {
   "version": "1.1.1",
-  "notes": "在线更新完全脱钩自建服务器：只走 GitHub（jsDelivr 镜像仅做 CDN，同源内容）；移除全部 NAS 相关逻辑与明文放行",
+  "notes": "chore(release): 1.1.1 —— 脱钩 NAS 后的首个构建",
   "apkUrl": "https://github.com/Charon-1978/cycle_note/releases/download/v1.1.1/yueji-1.1.1-arm64.apk",
-  "sha256": "01f9e80d550a24571023945a1d9efa31a9880ca243b4e7bd732f8fe2cfc52c36",
-  "size": 31971241,
-  "publishedAt": "2026-11-22T15:37:53Z"
+  "sha256": "19c45d72bd32d0d5cb1ca1eb132806e3b1632c56367adc381536a3a7ce0656e7",
+  "size": 31971037,
+  "publishedAt": "2026-11-22T15:56:36Z"
 }
