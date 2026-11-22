@@ -19,7 +19,7 @@
 /// 由 test/update/version_sync_test.dart 在 CI 里强制校验。
 const String kAppVersion = String.fromEnvironment(
   'APP_VERSION',
-  defaultValue: '1.1.0',
+  defaultValue: '1.1.1',
 );
 
 /// 主通道 manifest：GitHub raw（CDN 快、无需 API token）。
