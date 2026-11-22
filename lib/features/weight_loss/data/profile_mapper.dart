@@ -42,9 +42,9 @@ extension BodyProfileX on BodyProfile {
       goal: _enumOr(WeightGoal.values, goal, WeightGoal.lose),
       pace: _enumOr(LossPace.values, pace, LossPace.standard),
       targetWeightKg: targetWeightKg,
-      // 体脂率不在 BodyProfiles 表里（表还没这一列），
-      // 预留字段：加列后在这里读，TdeeService 自动切 Katch-McArdle。
-      bodyFatPercent: null,
+      // 体脂率：schema v4 起有独立列；未填为 null → TdeeService 走 Mifflin-St Jeor，
+      // 填了自动切换 Katch-McArdle。
+      bodyFatPercent: bodyFatPercent,
     );
   }
 }
@@ -62,6 +62,7 @@ extension UserProfileX on UserProfile {
       heightCm: heightCm,
       startWeightKg: startWeightKg,
       activityLevel: activity.name,
+      bodyFatPercent: Value(bodyFatPercent),
       targetWeightKg: Value(targetWeightKg),
       goal: Value(goal.name),
       pace: Value(pace.name),

@@ -178,23 +178,46 @@ void main() {
       expect(future.error, contains('未来'));
     });
 
-    test('经期长度越界（<2 / >10）→ 拒绝', () {
-      final tooShort = editor.upsert(
+    test('经期长度越界（<1 / >30）→ 拒绝；1 天与 20 天的异常经期允许', () {
+      // 结束日早于开始日 → 拒绝（长度为负）
+      final inverted = editor.upsert(
         existing: base(),
         start: d(2026, 9, 10),
-        end: d(2026, 9, 10),
+        end: d(2026, 9, 8),
         today: today,
       );
-      expect(tooShort.ok, isFalse);
+      expect(inverted.ok, isFalse);
 
       final tooLong = editor.upsert(
         existing: base(),
         start: d(2026, 9, 10),
-        end: d(2026, 9, 25),
+        end: d(2026, 10, 11),
         today: today,
       );
       expect(tooLong.ok, isFalse);
       expect(tooLong.error, contains('最长'));
+
+      // 异常经期：20 天必须允许（用户反馈"淋漓两三周"要能记）
+      final longPeriod = editor.upsert(
+        existing: base(),
+        start: d(2026, 9, 1),
+        end: d(2026, 9, 20),
+        today: today,
+      );
+      expect(longPeriod.ok, isTrue);
+      expect(
+        longPeriod.cycles.firstWhere((c) => c.start == d(2026, 9, 1)).periodLength,
+        20,
+      );
+
+      // 1 天（点滴/只来一天）也要允许
+      final oneDay = editor.upsert(
+        existing: base(),
+        start: d(2026, 8, 5),
+        end: d(2026, 8, 5),
+        today: today,
+      );
+      expect(oneDay.ok, isTrue);
     });
   });
 
@@ -235,4 +258,56 @@ void main() {
       expect(r.periodDays.contains(d(2026, 10, 1)), isFalse);
     });
   });
+
+  group('maxBackfillDays（补记只能补到今天的唯一口径）', () {
+    final today = d(2026, 11, 22);
+
+    test('起点就是今天 → 只能补 1 天', () {
+      expect(maxBackfillDays(start: today, today: today), 1);
+    });
+
+    test('起点是今天往前 4 天 → 5 天', () {
+      expect(
+        maxBackfillDays(start: d(2026, 11, 18), today: today),
+        5,
+      );
+    });
+
+    test('起点是今天 20 天前 → 21 天（异常经期也能补）', () {
+      expect(maxBackfillDays(start: d(2026, 11, 2), today: today), 21);
+    });
+
+    test('起点 40 天前 → 封顶到 30 天（一个月内的物理上限）', () {
+      expect(
+        maxBackfillDays(start: d(2026, 10, 13), today: today),
+        PeriodHistoryEditor.maxPeriodLength,
+      );
+    });
+
+    test('起点在未来 → 0（这一天不该被补记）', () {
+      expect(maxBackfillDays(start: d(2026, 11, 23), today: today), 0);
+      expect(maxBackfillDays(start: d(2026, 12, 1), today: today), 0);
+    });
+
+    test('跨月：10/30 到今天 11/2 → 4 天', () {
+      expect(
+        maxBackfillDays(start: d(2026, 10, 30), today: d(2026, 11, 2)),
+        4,
+      );
+    });
+
+    test('跨年：12/30 到次年 1/2 → 4 天', () {
+      expect(
+        maxBackfillDays(start: d(2025, 12, 30), today: d(2026, 1, 2)),
+        4,
+      );
+    });
+
+    test('时分秒不影响判断（只按日期算）', () {
+      final start = DateTime(2026, 11, 20, 23, 59);
+      final lateToday = DateTime(2026, 11, 22, 0, 1);
+      expect(maxBackfillDays(start: start, today: lateToday), 3);
+    });
+  });
 }
+

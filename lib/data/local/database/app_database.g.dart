@@ -1429,6 +1429,12 @@ class $BodyProfilesTable extends BodyProfiles
   late final GeneratedColumn<String> activityLevel = GeneratedColumn<String>(
       'activity_level', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _bodyFatPercentMeta =
+      const VerificationMeta('bodyFatPercent');
+  @override
+  late final GeneratedColumn<double> bodyFatPercent = GeneratedColumn<double>(
+      'body_fat_percent', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
   static const VerificationMeta _targetWeightKgMeta =
       const VerificationMeta('targetWeightKg');
   @override
@@ -1465,6 +1471,7 @@ class $BodyProfilesTable extends BodyProfiles
         heightCm,
         startWeightKg,
         activityLevel,
+        bodyFatPercent,
         targetWeightKg,
         goal,
         pace,
@@ -1517,6 +1524,12 @@ class $BodyProfilesTable extends BodyProfiles
     } else if (isInserting) {
       context.missing(_activityLevelMeta);
     }
+    if (data.containsKey('body_fat_percent')) {
+      context.handle(
+          _bodyFatPercentMeta,
+          bodyFatPercent.isAcceptableOrUnknown(
+              data['body_fat_percent']!, _bodyFatPercentMeta));
+    }
     if (data.containsKey('target_weight_kg')) {
       context.handle(
           _targetWeightKgMeta,
@@ -1556,6 +1569,8 @@ class $BodyProfilesTable extends BodyProfiles
           DriftSqlType.double, data['${effectivePrefix}start_weight_kg'])!,
       activityLevel: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}activity_level'])!,
+      bodyFatPercent: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}body_fat_percent']),
       targetWeightKg: attachedDatabase.typeMapping.read(
           DriftSqlType.double, data['${effectivePrefix}target_weight_kg']),
       goal: attachedDatabase.typeMapping
@@ -1584,6 +1599,13 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
 
   /// sedentary / light / moderate / active / veryActive
   final String activityLevel;
+
+  /// 体脂率（%）。null = 用户没填。
+  ///
+  /// 填了之后 TdeeService 会改用 Katch-McArdle（基于去脂体重），
+  /// 对体脂偏高/偏低的人比 Mifflin-St Jeor 更准。
+  /// 加列时间：schema v4（只 addColumn，不动老数据）。
+  final double? bodyFatPercent;
   final double? targetWeightKg;
 
   /// lose / maintain / gain
@@ -1599,6 +1621,7 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
       required this.heightCm,
       required this.startWeightKg,
       required this.activityLevel,
+      this.bodyFatPercent,
       this.targetWeightKg,
       required this.goal,
       required this.pace,
@@ -1612,6 +1635,9 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
     map['height_cm'] = Variable<double>(heightCm);
     map['start_weight_kg'] = Variable<double>(startWeightKg);
     map['activity_level'] = Variable<String>(activityLevel);
+    if (!nullToAbsent || bodyFatPercent != null) {
+      map['body_fat_percent'] = Variable<double>(bodyFatPercent);
+    }
     if (!nullToAbsent || targetWeightKg != null) {
       map['target_weight_kg'] = Variable<double>(targetWeightKg);
     }
@@ -1629,6 +1655,9 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
       heightCm: Value(heightCm),
       startWeightKg: Value(startWeightKg),
       activityLevel: Value(activityLevel),
+      bodyFatPercent: bodyFatPercent == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bodyFatPercent),
       targetWeightKg: targetWeightKg == null && nullToAbsent
           ? const Value.absent()
           : Value(targetWeightKg),
@@ -1648,6 +1677,7 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
       heightCm: serializer.fromJson<double>(json['heightCm']),
       startWeightKg: serializer.fromJson<double>(json['startWeightKg']),
       activityLevel: serializer.fromJson<String>(json['activityLevel']),
+      bodyFatPercent: serializer.fromJson<double?>(json['bodyFatPercent']),
       targetWeightKg: serializer.fromJson<double?>(json['targetWeightKg']),
       goal: serializer.fromJson<String>(json['goal']),
       pace: serializer.fromJson<String>(json['pace']),
@@ -1664,6 +1694,7 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
       'heightCm': serializer.toJson<double>(heightCm),
       'startWeightKg': serializer.toJson<double>(startWeightKg),
       'activityLevel': serializer.toJson<String>(activityLevel),
+      'bodyFatPercent': serializer.toJson<double?>(bodyFatPercent),
       'targetWeightKg': serializer.toJson<double?>(targetWeightKg),
       'goal': serializer.toJson<String>(goal),
       'pace': serializer.toJson<String>(pace),
@@ -1678,6 +1709,7 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
           double? heightCm,
           double? startWeightKg,
           String? activityLevel,
+          Value<double?> bodyFatPercent = const Value.absent(),
           Value<double?> targetWeightKg = const Value.absent(),
           String? goal,
           String? pace,
@@ -1689,6 +1721,8 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
         heightCm: heightCm ?? this.heightCm,
         startWeightKg: startWeightKg ?? this.startWeightKg,
         activityLevel: activityLevel ?? this.activityLevel,
+        bodyFatPercent:
+            bodyFatPercent.present ? bodyFatPercent.value : this.bodyFatPercent,
         targetWeightKg:
             targetWeightKg.present ? targetWeightKg.value : this.targetWeightKg,
         goal: goal ?? this.goal,
@@ -1707,6 +1741,9 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
       activityLevel: data.activityLevel.present
           ? data.activityLevel.value
           : this.activityLevel,
+      bodyFatPercent: data.bodyFatPercent.present
+          ? data.bodyFatPercent.value
+          : this.bodyFatPercent,
       targetWeightKg: data.targetWeightKg.present
           ? data.targetWeightKg.value
           : this.targetWeightKg,
@@ -1725,6 +1762,7 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
           ..write('heightCm: $heightCm, ')
           ..write('startWeightKg: $startWeightKg, ')
           ..write('activityLevel: $activityLevel, ')
+          ..write('bodyFatPercent: $bodyFatPercent, ')
           ..write('targetWeightKg: $targetWeightKg, ')
           ..write('goal: $goal, ')
           ..write('pace: $pace, ')
@@ -1735,7 +1773,7 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
 
   @override
   int get hashCode => Object.hash(id, sex, age, heightCm, startWeightKg,
-      activityLevel, targetWeightKg, goal, pace, updatedAt);
+      activityLevel, bodyFatPercent, targetWeightKg, goal, pace, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1746,6 +1784,7 @@ class BodyProfile extends DataClass implements Insertable<BodyProfile> {
           other.heightCm == this.heightCm &&
           other.startWeightKg == this.startWeightKg &&
           other.activityLevel == this.activityLevel &&
+          other.bodyFatPercent == this.bodyFatPercent &&
           other.targetWeightKg == this.targetWeightKg &&
           other.goal == this.goal &&
           other.pace == this.pace &&
@@ -1759,6 +1798,7 @@ class BodyProfilesCompanion extends UpdateCompanion<BodyProfile> {
   final Value<double> heightCm;
   final Value<double> startWeightKg;
   final Value<String> activityLevel;
+  final Value<double?> bodyFatPercent;
   final Value<double?> targetWeightKg;
   final Value<String> goal;
   final Value<String> pace;
@@ -1770,6 +1810,7 @@ class BodyProfilesCompanion extends UpdateCompanion<BodyProfile> {
     this.heightCm = const Value.absent(),
     this.startWeightKg = const Value.absent(),
     this.activityLevel = const Value.absent(),
+    this.bodyFatPercent = const Value.absent(),
     this.targetWeightKg = const Value.absent(),
     this.goal = const Value.absent(),
     this.pace = const Value.absent(),
@@ -1782,6 +1823,7 @@ class BodyProfilesCompanion extends UpdateCompanion<BodyProfile> {
     required double heightCm,
     required double startWeightKg,
     required String activityLevel,
+    this.bodyFatPercent = const Value.absent(),
     this.targetWeightKg = const Value.absent(),
     this.goal = const Value.absent(),
     this.pace = const Value.absent(),
@@ -1798,6 +1840,7 @@ class BodyProfilesCompanion extends UpdateCompanion<BodyProfile> {
     Expression<double>? heightCm,
     Expression<double>? startWeightKg,
     Expression<String>? activityLevel,
+    Expression<double>? bodyFatPercent,
     Expression<double>? targetWeightKg,
     Expression<String>? goal,
     Expression<String>? pace,
@@ -1810,6 +1853,7 @@ class BodyProfilesCompanion extends UpdateCompanion<BodyProfile> {
       if (heightCm != null) 'height_cm': heightCm,
       if (startWeightKg != null) 'start_weight_kg': startWeightKg,
       if (activityLevel != null) 'activity_level': activityLevel,
+      if (bodyFatPercent != null) 'body_fat_percent': bodyFatPercent,
       if (targetWeightKg != null) 'target_weight_kg': targetWeightKg,
       if (goal != null) 'goal': goal,
       if (pace != null) 'pace': pace,
@@ -1824,6 +1868,7 @@ class BodyProfilesCompanion extends UpdateCompanion<BodyProfile> {
       Value<double>? heightCm,
       Value<double>? startWeightKg,
       Value<String>? activityLevel,
+      Value<double?>? bodyFatPercent,
       Value<double?>? targetWeightKg,
       Value<String>? goal,
       Value<String>? pace,
@@ -1835,6 +1880,7 @@ class BodyProfilesCompanion extends UpdateCompanion<BodyProfile> {
       heightCm: heightCm ?? this.heightCm,
       startWeightKg: startWeightKg ?? this.startWeightKg,
       activityLevel: activityLevel ?? this.activityLevel,
+      bodyFatPercent: bodyFatPercent ?? this.bodyFatPercent,
       targetWeightKg: targetWeightKg ?? this.targetWeightKg,
       goal: goal ?? this.goal,
       pace: pace ?? this.pace,
@@ -1863,6 +1909,9 @@ class BodyProfilesCompanion extends UpdateCompanion<BodyProfile> {
     if (activityLevel.present) {
       map['activity_level'] = Variable<String>(activityLevel.value);
     }
+    if (bodyFatPercent.present) {
+      map['body_fat_percent'] = Variable<double>(bodyFatPercent.value);
+    }
     if (targetWeightKg.present) {
       map['target_weight_kg'] = Variable<double>(targetWeightKg.value);
     }
@@ -1887,6 +1936,7 @@ class BodyProfilesCompanion extends UpdateCompanion<BodyProfile> {
           ..write('heightCm: $heightCm, ')
           ..write('startWeightKg: $startWeightKg, ')
           ..write('activityLevel: $activityLevel, ')
+          ..write('bodyFatPercent: $bodyFatPercent, ')
           ..write('targetWeightKg: $targetWeightKg, ')
           ..write('goal: $goal, ')
           ..write('pace: $pace, ')
@@ -5240,6 +5290,7 @@ typedef $$BodyProfilesTableCreateCompanionBuilder = BodyProfilesCompanion
   required double heightCm,
   required double startWeightKg,
   required String activityLevel,
+  Value<double?> bodyFatPercent,
   Value<double?> targetWeightKg,
   Value<String> goal,
   Value<String> pace,
@@ -5253,6 +5304,7 @@ typedef $$BodyProfilesTableUpdateCompanionBuilder = BodyProfilesCompanion
   Value<double> heightCm,
   Value<double> startWeightKg,
   Value<String> activityLevel,
+  Value<double?> bodyFatPercent,
   Value<double?> targetWeightKg,
   Value<String> goal,
   Value<String> pace,
@@ -5285,6 +5337,10 @@ class $$BodyProfilesTableFilterComposer
 
   ColumnFilters<String> get activityLevel => $composableBuilder(
       column: $table.activityLevel, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get bodyFatPercent => $composableBuilder(
+      column: $table.bodyFatPercent,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get targetWeightKg => $composableBuilder(
       column: $table.targetWeightKg,
@@ -5329,6 +5385,10 @@ class $$BodyProfilesTableOrderingComposer
       column: $table.activityLevel,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<double> get bodyFatPercent => $composableBuilder(
+      column: $table.bodyFatPercent,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<double> get targetWeightKg => $composableBuilder(
       column: $table.targetWeightKg,
       builder: (column) => ColumnOrderings(column));
@@ -5369,6 +5429,9 @@ class $$BodyProfilesTableAnnotationComposer
 
   GeneratedColumn<String> get activityLevel => $composableBuilder(
       column: $table.activityLevel, builder: (column) => column);
+
+  GeneratedColumn<double> get bodyFatPercent => $composableBuilder(
+      column: $table.bodyFatPercent, builder: (column) => column);
 
   GeneratedColumn<double> get targetWeightKg => $composableBuilder(
       column: $table.targetWeightKg, builder: (column) => column);
@@ -5415,6 +5478,7 @@ class $$BodyProfilesTableTableManager extends RootTableManager<
             Value<double> heightCm = const Value.absent(),
             Value<double> startWeightKg = const Value.absent(),
             Value<String> activityLevel = const Value.absent(),
+            Value<double?> bodyFatPercent = const Value.absent(),
             Value<double?> targetWeightKg = const Value.absent(),
             Value<String> goal = const Value.absent(),
             Value<String> pace = const Value.absent(),
@@ -5427,6 +5491,7 @@ class $$BodyProfilesTableTableManager extends RootTableManager<
             heightCm: heightCm,
             startWeightKg: startWeightKg,
             activityLevel: activityLevel,
+            bodyFatPercent: bodyFatPercent,
             targetWeightKg: targetWeightKg,
             goal: goal,
             pace: pace,
@@ -5439,6 +5504,7 @@ class $$BodyProfilesTableTableManager extends RootTableManager<
             required double heightCm,
             required double startWeightKg,
             required String activityLevel,
+            Value<double?> bodyFatPercent = const Value.absent(),
             Value<double?> targetWeightKg = const Value.absent(),
             Value<String> goal = const Value.absent(),
             Value<String> pace = const Value.absent(),
@@ -5451,6 +5517,7 @@ class $$BodyProfilesTableTableManager extends RootTableManager<
             heightCm: heightCm,
             startWeightKg: startWeightKg,
             activityLevel: activityLevel,
+            bodyFatPercent: bodyFatPercent,
             targetWeightKg: targetWeightKg,
             goal: goal,
             pace: pace,

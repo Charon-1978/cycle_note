@@ -21,6 +21,7 @@ BodyProfile _row({
   String goal = 'lose',
   String pace = 'standard',
   double? targetWeightKg,
+  double? bodyFatPercent,
 }) {
   return BodyProfile(
     id: 1,
@@ -30,6 +31,7 @@ BodyProfile _row({
     startWeightKg: startWeightKg,
     activityLevel: activityLevel,
     targetWeightKg: targetWeightKg,
+    bodyFatPercent: bodyFatPercent,
     goal: goal,
     pace: pace,
     updatedAt: DateTime(2026, 1, 1),
@@ -81,6 +83,15 @@ void main() {
       // 22 × 1.7² = 63.58
       expect(p.resolvedTargetWeight, closeTo(63.58, 0.01));
     });
+
+    test('体脂率：库里没填 → null（继续走 Mifflin-St Jeor）', () {
+      expect(_row().toDomain().bodyFatPercent, isNull);
+    });
+
+    test('体脂率：库里有值 → 原样带到领域模型（供 Katch-McArdle 用）', () {
+      final p = _row(bodyFatPercent: 26.5).toDomain();
+      expect(p.bodyFatPercent, 26.5);
+    });
   });
 
   group('UserProfile.toCompanion', () {
@@ -115,6 +126,30 @@ void main() {
 
       final c = p.toCompanion(startWeightKg: 60);
       expect(c.targetWeightKg, const Value<double?>(null));
+    });
+
+    test('体脂率：填了就落库，没填写 null', () {
+      const withFat = UserProfile(
+        sex: Sex.female,
+        age: 30,
+        heightCm: 165,
+        weightKg: 60,
+        activity: ActivityLevel.light,
+        bodyFatPercent: 24,
+      );
+      expect(withFat.toCompanion(startWeightKg: 60).bodyFatPercent.value, 24);
+
+      const withoutFat = UserProfile(
+        sex: Sex.female,
+        age: 30,
+        heightCm: 165,
+        weightKg: 60,
+        activity: ActivityLevel.light,
+      );
+      expect(
+        withoutFat.toCompanion(startWeightKg: 60).bodyFatPercent,
+        const Value<double?>(null),
+      );
     });
   });
 }

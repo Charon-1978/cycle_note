@@ -14,6 +14,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_tokens.dart';
+import '../../../core/widgets/surface/soft_card.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import '../../../data/local/database/app_database.dart';
 import '../providers/weight_loss_providers.dart';
@@ -65,42 +66,77 @@ class ExerciseLogPage extends ConsumerWidget {
     );
   }
 
-  /// 按天分组。返回的是扁平 children 列表（header + rows），
-  /// 比嵌套 ListView 更省心，也不会出现嵌套滚动。
+  /// 按天分组。每天一张卡：卡内是该天的若干条 + 当日合计。
+  ///
+  /// 2026-11 视觉升级：原来是"扁平行 + 无边框"，一天有 3 条时看不出
+  /// 哪些属于同一天；改成按天成卡后，"今天练了几次、一共多少"一眼可得。
   static List<Widget> _buildGroups(BuildContext context, List<ExerciseLog> logs) {
-    final children = <Widget>[];
     final scheme = Theme.of(context).colorScheme;
+    final colors = context.colors;
 
-    DateTime? currentDay;
-    var dayTotal = 0.0;
-
+    // 先分组（保持 logs 原有顺序：仓库已按时间倒序返回）
+    final groups = <DateTime, List<ExerciseLog>>{};
     for (final log in logs) {
       final day = DateTime(
         log.recordedAt.year,
         log.recordedAt.month,
         log.recordedAt.day,
       );
-      if (currentDay == null || day != currentDay) {
-        if (currentDay != null) {
-          children.add(_DayTotal(total: dayTotal));
-        }
-        currentDay = day;
-        dayTotal = 0;
-        children.add(Padding(
-          padding: const EdgeInsets.only(
-            top: AppTokens.spaceM,
-            bottom: AppTokens.spaceS,
-          ),
-          child: Text(
-            _dayLabel(day),
-            style: AppTokens.title.copyWith(color: scheme.onSurface),
-          ),
-        ));
-      }
-      dayTotal += log.kcal;
-      children.add(_ExerciseRow(log: log));
+      groups.putIfAbsent(day, () => <ExerciseLog>[]).add(log);
     }
-    if (currentDay != null) children.add(_DayTotal(total: dayTotal));
+
+    final children = <Widget>[];
+    groups.forEach((day, items) {
+      final total = items.fold<double>(0, (s, l) => s + l.kcal);
+      children.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppTokens.cardGap),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppTokens.spaceS),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: colors.fertile,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: AppTokens.spaceS),
+                    Text(
+                      _dayLabel(day),
+                      style: AppTokens.title.copyWith(color: scheme.onSurface),
+                    ),
+                  ],
+                ),
+              ),
+              SoftCard(
+                padding: const EdgeInsets.fromLTRB(
+                  AppTokens.spaceL,
+                  AppTokens.spaceS,
+                  AppTokens.spaceL,
+                  AppTokens.spaceS,
+                ),
+                child: Column(
+                  children: [
+                    for (final log in items) _ExerciseRow(log: log),
+                    Divider(
+                      height: 1,
+                      color: scheme.onSurface.withAlpha(12),
+                    ),
+                    _DayTotal(total: total),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
     return children;
   }
 
@@ -197,8 +233,50 @@ class _ExerciseRow extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          const SizedBox(width: AppTokens.spaceXs),
+          _DeleteButton(logId: log.id, name: log.exerciseName),
         ],
       ),
+    );
+  }
+}
+
+/// 删除一条运动记录。破坏性操作 → 红色 + 二次确认（ADR-3 的唯一豁免场景）。
+class _DeleteButton extends ConsumerWidget {
+  const _DeleteButton({required this.logId, required this.name});
+
+  final int logId;
+  final String name;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
+    return IconButton(
+      visualDensity: VisualDensity.compact,
+      icon: Icon(Icons.close, size: 18, color: colors.danger),
+      tooltip: '删除',
+      onPressed: () async {
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('删除这条运动？'),
+            content: Text('「$name」将从今日消耗中移除，热量会重新计算。'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text('删除', style: TextStyle(color: colors.danger)),
+              ),
+            ],
+          ),
+        );
+        if (ok != true) return;
+        await ref.read(weightLossRepositoryProvider).deleteExercise(logId);
+        invalidateWeightLossChain(ref.invalidate);
+      },
     );
   }
 }
@@ -222,3 +300,4 @@ class _DayTotal extends StatelessWidget {
     );
   }
 }
+

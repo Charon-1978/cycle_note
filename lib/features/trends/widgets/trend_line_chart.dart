@@ -56,18 +56,21 @@ class TrendLineChart extends StatelessWidget {
     return Semantics(
       label: semanticName,
       value: _semanticSummary,
-      child: SizedBox(
-        width: double.infinity,
-        height: height,
-        child: CustomPaint(
-          size: Size.infinite,
-          painter: _LinePainter(
-            data: data,
-            lineColor: lineColor ?? scheme.primary,
-            gridColor: scheme.onSurface.withAlpha(18),
-            labelColor: scheme.onSurface.withAlpha(120),
-            format: _fmt,
-            unit: unit,
+      // 图表单独一层重绘边界：页面其余部分（摘要文字、分段控件）变化时不必重画整条折线。
+      child: RepaintBoundary(
+        child: SizedBox(
+          width: double.infinity,
+          height: height,
+          child: CustomPaint(
+            size: Size.infinite,
+            painter: _LinePainter(
+              data: data,
+              lineColor: lineColor ?? scheme.primary,
+              gridColor: scheme.onSurface.withAlpha(18),
+              labelColor: scheme.onSurface.withAlpha(120),
+              format: _fmt,
+              unit: unit,
+            ),
           ),
         ),
       ),

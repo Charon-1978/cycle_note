@@ -18,6 +18,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_tokens.dart';
 import '../../../core/widgets/charts/stat_ring.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
+import '../../../core/widgets/surface/soft_card.dart';
 import '../../weight_loss/models/weight_loss_models.dart';
 import '../../weight_loss/providers/weight_loss_providers.dart';
 
@@ -95,6 +96,14 @@ class _RingBody extends StatelessWidget {
         Row(
           children: [
             Text('今日热量', style: AppTokens.title),
+            const SizedBox(width: AppTokens.spaceS),
+            // 环里只有"剩余"，预算是多少必须写在旁边，否则用户没法自己核对
+            Text(
+              '预算 ${budget.intakeTarget.round()}',
+              style: AppTokens.caption.copyWith(
+                color: scheme.onSurface.withAlpha(120),
+              ),
+            ),
             const Spacer(),
             if (burn > 0)
               _Pill(
@@ -106,28 +115,34 @@ class _RingBody extends StatelessWidget {
         ),
         const SizedBox(height: AppTokens.spaceL),
         Center(
-          child: StatRing(
-            budget: budget.intakeTarget,
-            intake: intake,
-            burn: burn,
-            size: 188,
-            strokeWidth: 12,
-            centerChild: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  remain.abs().round().toString(),
-                  style: AppTokens.display.copyWith(
-                    color: _isOver ? colors.calorieOver : scheme.onSurface,
+          // 环用 CustomPaint 绘制，加一层重绘边界：
+          // 卡片里其他文字（预算/下限说明/运动胶囊）变化时不必重画整个环。
+          child: RepaintBoundary(
+            child: StatRing(
+              budget: budget.intakeTarget,
+              intake: intake,
+              burn: burn,
+              // 164 而不是 188：一屏要能同时看到"剩余"和"今天吃什么"的第一行，
+              // 不然用户得先滑一下才知道下面能记录（1080x2400 实测）。
+              size: 164,
+              strokeWidth: 14,
+              centerChild: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    remain.abs().round().toString(),
+                    style: AppTokens.display.copyWith(
+                      color: _isOver ? colors.calorieOver : scheme.onSurface,
+                    ),
                   ),
-                ),
-                Text(
-                  _isOver ? '已超 kcal' : '剩余 kcal',
-                  style: AppTokens.caption.copyWith(
-                    color: scheme.onSurface.withAlpha(140),
+                  Text(
+                    _isOver ? '已超 kcal' : '剩余 kcal',
+                    style: AppTokens.caption.copyWith(
+                      color: scheme.onSurface.withAlpha(140),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -170,19 +185,7 @@ class _CardShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(AppTokens.spaceL),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: AppTokens.borderL,
-        border: Border.all(
-          color: scheme.onSurface.withAlpha(20),
-          width: AppTokens.borderWidth,
-        ),
-      ),
-      child: child,
-    );
+    return SoftCard(child: child);
   }
 }
 

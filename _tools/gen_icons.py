@@ -131,19 +131,22 @@ def render(size, rounded=True, content_scale=1.0, transparent=False):
 
 
 def main():
-    res = "android/app/src/main/res"
+    # 2026-11-22 起：正式图标改为「从旧版 APK 提取的原图标」，
+    # 见 _tools/extract_icon.ps1。本生成器只用于设计稿预览，
+    # 输出到 build/icon_preview/，**不再写进 res/**，避免误覆盖正式图标。
+    res = os.path.join("build", "icon_preview", "mipmap")
     for name, size in LEGACY.items():
-        p = os.path.join(res, "mipmap-" + name, "ic_launcher.png")
+        p = os.path.join(res + "-" + name, "ic_launcher.png")
         write_png(p, size, render(size, rounded=True, content_scale=1.0))
         print("legacy", size, "->", p)
 
     for name, size in FOREGROUND.items():
-        p = os.path.join(res, "mipmap-" + name, "ic_launcher_foreground.png")
+        p = os.path.join(res + "-" + name, "ic_launcher_foreground.png")
         write_png(p, size, render(size, rounded=False, content_scale=0.66,
                                   transparent=True))
         print("fg", size, "->", p)
 
-    p = os.path.join("assets", "branding", "icon_1024.png")
+    p = os.path.join("build", "icon_preview", "icon_1024.png")
     write_png(p, 1024, render(1024, rounded=True, content_scale=1.0))
     print("branding ->", p)
 

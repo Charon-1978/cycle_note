@@ -36,6 +36,35 @@ class _ExportPageState extends ConsumerState<ExportPage> {
   String? _result;
   ImportReport? _report;
 
+  /// 「最近备份 11-22 11:52 · 共 1 份」这句摘要。
+  /// 原来只有一个按钮，用户不知道会回到哪个时刻、有没有备份可恢复。
+  String _backupSummary = '正在读取备份…';
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_refreshBackupSummary);
+  }
+
+  Future<void> _refreshBackupSummary() async {
+    String text;
+    try {
+      final backups = await DbBackup.listBackups();
+      if (backups.isEmpty) {
+        text = '还没有备份（升级失败时才需要它）';
+      } else {
+        final latest = await backups.first.stat();
+        final m = latest.modified;
+        final hh = m.hour.toString().padLeft(2, '0');
+        final mm = m.minute.toString().padLeft(2, '0');
+        text = '最近备份 ${m.month}-${m.day} $hh:$mm · 共 ${backups.length} 份';
+      }
+    } catch (_) {
+      text = '备份状态读取失败（不影响导出）';
+    }
+    if (mounted) setState(() => _backupSummary = text);
+  }
+
   Future<void> _export() async {
     setState(() {
       _running = true;
@@ -105,7 +134,14 @@ class _ExportPageState extends ConsumerState<ExportPage> {
                       dense: true,
                       value: picked.contains(f.path),
                       title: Text(
+                        // 文件名很长（yueji_period_days_20261122_1228.csv），
+                        // 窄屏会从中间断词成 "…1228.cs / v"。这里只留一行 + 省略号，
+                        // 完整名字放到语义标签里，读屏仍能拿到全名。
                         f.uri.pathSegments.last,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: false,
+                        semanticsLabel: f.uri.pathSegments.last,
                         style: AppTokens.caption,
                       ),
                       subtitle: Text(
@@ -245,6 +281,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
       messenger.showSnackBar(SnackBar(content: Text('恢复失败：$e')));
     } finally {
       if (mounted) setState(() => _running = false);
+      await _refreshBackupSummary();
     }
   }
 
@@ -292,6 +329,13 @@ class _ExportPageState extends ConsumerState<ExportPage> {
             onPressed: _running ? null : _restoreBackup,
             icon: const Icon(Icons.restore),
             label: const Text('恢复本机备份（升级失败回滚用）'),
+          ),
+          Text(
+            _backupSummary,
+            textAlign: TextAlign.center,
+            style: AppTokens.caption.copyWith(
+              color: scheme.onSurface.withAlpha(130),
+            ),
           ),
 
           if (_result != null) ...[

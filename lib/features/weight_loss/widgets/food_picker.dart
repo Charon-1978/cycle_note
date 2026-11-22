@@ -17,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_tokens.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import '../models/weight_loss_models.dart';
@@ -60,20 +59,27 @@ String defaultMealType([DateTime? now]) {
 Future<FoodEntry?> showFoodPicker(
   BuildContext context, {
   required List<FoodItem> foods,
+  String? initialMealType,
 }) {
   return showModalBottomSheet<FoodEntry>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (_) => _FoodPickerSheet(foods: foods),
+    builder: (_) => _FoodPickerSheet(
+      foods: foods,
+      initialMealType: initialMealType,
+    ),
   );
 }
 
 class _FoodPickerSheet extends ConsumerStatefulWidget {
-  const _FoodPickerSheet({required this.foods});
+  const _FoodPickerSheet({required this.foods, this.initialMealType});
 
   final List<FoodItem> foods;
+
+  /// 从「今日」页点某个餐次进来时预选该餐次；为空则按当前时间猜。
+  final String? initialMealType;
 
   @override
   ConsumerState<_FoodPickerSheet> createState() => _FoodPickerSheetState();
@@ -85,10 +91,15 @@ class _FoodPickerSheetState extends ConsumerState<_FoodPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // 键盘弹起时可用高度要减掉键盘：原来固定 82% 屏高，B 段的"完成"按钮
+    // 会被键盘压住（1080x2400 实测，数字键盘约 40% 屏高）。
+    final insets = MediaQuery.viewInsetsOf(context).bottom;
+    final available = MediaQuery.sizeOf(context).height - insets;
+
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.only(bottom: insets),
       child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * 0.82,
+        height: available * 0.82,
         child: _selected == null
             ? _PickStage(
                 foods: widget.foods,
@@ -97,7 +108,7 @@ class _FoodPickerSheetState extends ConsumerState<_FoodPickerSheet> {
               )
             : _QuantityStage(
                 food: _selected!,
-                initialMealType: defaultMealType(),
+                initialMealType: widget.initialMealType ?? defaultMealType(),
                 onCancel: () => setState(() => _selected = null),
                 onDone: (entry) => Navigator.of(context).pop(entry),
               ),
@@ -340,7 +351,6 @@ class _QuantityStageState extends State<_QuantityStage> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final colors = context.colors;
     final f = widget.food;
     final grams = _grams;
     final kcal = grams == null ? null : f.kcalOf(grams);
@@ -487,7 +497,9 @@ class _QuantityStageState extends State<_QuantityStage> {
                       ? '填写数量'
                       : '记 ${(grams / f.unitGrams).toStringAsFixed(1)}${f.unitName}'
                           '（${grams.round()} g · ${kcal.round()} kcal）',
-                  style: AppTokens.title.copyWith(color: colors.calorieOk),
+                  // 主按钮是品牌色实底，文字必须用白色；
+                  // 原来写的是 calorieOk（绿），在红底上读不清。
+                  style: AppTokens.title.copyWith(color: Colors.white),
                 ),
               ),
             ),

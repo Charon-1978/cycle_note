@@ -118,6 +118,32 @@ void main() {
       expect(logs.first.recordedAt.isAfter(logs.last.recordedAt), isTrue);
     });
 
+    test('删除单条：行消失，当日合计随之减少', () async {
+      await repo.addExercise(def: _run, minutes: 30, weightKg: 60);
+      await repo.addExercise(
+        def: const ExerciseDef(code: 'yoga', name: '瑜伽', met: 2.5),
+        minutes: 60,
+        weightKg: 60,
+      );
+      final before = await repo.exerciseLogs();
+      expect(before, hasLength(2));
+
+      final removed = before.first;
+      await repo.deleteExercise(removed.id);
+
+      final after = await repo.exerciseLogs();
+      expect(after, hasLength(1));
+      expect(after.single.id, isNot(removed.id));
+
+      final budget = const TdeeServiceStub().budget();
+      final summary = await repo.summaryOf(DateTime.now(), budget);
+      expect(
+        summary.burnKcal,
+        closeTo(after.single.kcal, 0.01),
+        reason: '删掉之后当日消耗只剩剩下那条',
+      );
+    });
+
     test('今日汇总里的 burnKcal 等于当天记录之和', () async {
       await repo.addExercise(def: _run, minutes: 30, weightKg: 60);
       await repo.addExercise(

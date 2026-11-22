@@ -74,6 +74,14 @@ class BodyProfiles extends Table {
 
   /// sedentary / light / moderate / active / veryActive
   TextColumn get activityLevel => text()();
+
+  /// 体脂率（%）。null = 用户没填。
+  ///
+  /// 填了之后 TdeeService 会改用 Katch-McArdle（基于去脂体重），
+  /// 对体脂偏高/偏低的人比 Mifflin-St Jeor 更准。
+  /// 加列时间：schema v4（只 addColumn，不动老数据）。
+  RealColumn get bodyFatPercent => real().nullable()();
+
   RealColumn get targetWeightKg => real().nullable()();
 
   /// lose / maintain / gain

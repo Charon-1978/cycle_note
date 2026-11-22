@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_tokens.dart';
+import '../../../core/widgets/surface/soft_card.dart';
 import '../../../data/local/database/app_database.dart';
 import '../../../data/local/database/database_provider.dart';
 import '../data/weight_loss_repository.dart' show DailyEnergySummary;
@@ -70,11 +71,19 @@ class FoodLogPage extends ConsumerWidget {
 ///
 /// 提成顶层函数是因为有两个入口：饮食记录页的 FAB，和今日页的快捷行。
 /// 两个入口必须走同一条路，否则一边改了流程另一边不知道。
-Future<void> recordMealFlow(BuildContext context, WidgetRef ref) async {
+Future<void> recordMealFlow(
+  BuildContext context,
+  WidgetRef ref, {
+  String? mealType,
+}) async {
   final foods = await ref.read(foodLibraryProvider.future);
   if (!context.mounted) return;
 
-  final entry = await showFoodPicker(context, foods: foods);
+  final entry = await showFoodPicker(
+    context,
+    foods: foods,
+    initialMealType: mealType,
+  );
   if (entry == null) return;
 
   await ref.read(weightLossRepositoryProvider).addMeal(
@@ -116,16 +125,7 @@ class _TotalCard extends StatelessWidget {
     final remain = energy?.remainKcal;
     final isOver = remain != null && remain < 0;
 
-    return Container(
-      padding: const EdgeInsets.all(AppTokens.spaceL),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: AppTokens.borderL,
-        border: Border.all(
-          color: scheme.onSurface.withAlpha(20),
-          width: AppTokens.borderWidth,
-        ),
-      ),
+    return SoftCard(
       child: Row(
         children: [
           Expanded(
@@ -136,10 +136,25 @@ class _TotalCard extends StatelessWidget {
                   color: scheme.onSurface.withAlpha(140),
                 )),
                 const SizedBox(height: AppTokens.spaceXs),
-                Text(
-                  '${(energy?.intakeKcal ?? 0).round()} kcal'
-                  '${count == 0 ? '' : ' · $count 笔'}',
-                  style: AppTokens.headline,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '${(energy?.intakeKcal ?? 0).round()}',
+                      style: AppTokens.display.copyWith(
+                        color: scheme.onSurface,
+                        fontSize: 30,
+                      ),
+                    ),
+                    const SizedBox(width: AppTokens.spaceXs),
+                    Text(
+                      'kcal${count == 0 ? '' : ' · $count 笔'}',
+                      style: AppTokens.caption.copyWith(
+                        color: scheme.onSurface.withAlpha(130),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -181,35 +196,45 @@ class _MealSection extends ConsumerWidget {
     final total = mine.fold<double>(0, (s, l) => s + l.kcal);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppTokens.spaceM),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(kMealLabels[mealType] ?? mealType, style: AppTokens.title),
-              const Spacer(),
-              Text(
-                '${total.round()} kcal',
-                style: AppTokens.body.copyWith(
-                  color: scheme.onSurface.withAlpha(140),
+      padding: const EdgeInsets.only(bottom: AppTokens.cardGap),
+      child: SoftCard(
+        padding: const EdgeInsets.fromLTRB(
+          AppTokens.spaceL,
+          AppTokens.spaceM,
+          AppTokens.spaceL,
+          AppTokens.spaceXs,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(kMealLabels[mealType] ?? mealType, style: AppTokens.title),
+                const Spacer(),
+                Text(
+                  '${total.round()} kcal',
+                  style: AppTokens.caption.copyWith(
+                    color: total > 0
+                        ? context.colors.brand
+                        : scheme.onSurface.withAlpha(140),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppTokens.spaceXs),
-          if (mine.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppTokens.spaceXs),
-              child: Text(
-                '没有记录',
-                style: AppTokens.caption.copyWith(
-                  color: scheme.onSurface.withAlpha(90),
+              ],
+            ),
+            const SizedBox(height: AppTokens.spaceXs),
+            if (mine.isEmpty)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppTokens.spaceXs),
+                child: Text(
+                  '没有记录',
+                  style: AppTokens.caption.copyWith(
+                    color: scheme.onSurface.withAlpha(90),
+                  ),
                 ),
-              ),
-            )
-          else
-            for (final log in mine)
+              )
+            else
+              for (final log in mine)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppTokens.spaceXs),
                 child: Row(
@@ -248,8 +273,8 @@ class _MealSection extends ConsumerWidget {
                   ],
                 ),
               ),
-          const Divider(height: AppTokens.spaceL),
-        ],
+          ],
+        ),
       ),
     );
   }

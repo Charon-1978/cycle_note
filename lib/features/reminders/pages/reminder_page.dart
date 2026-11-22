@@ -12,7 +12,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_tokens.dart';
+import '../../../core/widgets/surface/soft_card.dart';
 import '../services/reminder_service.dart';
 import '../services/reminder_scheduler.dart';
 
@@ -71,6 +73,7 @@ class _ReminderPageState extends ConsumerState<ReminderPage> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final colors = context.colors;
     final s = _settings;
 
     return Scaffold(
@@ -83,22 +86,50 @@ class _ReminderPageState extends ConsumerState<ReminderPage> {
                 vertical: AppTokens.spaceM,
               ),
               children: [
-                SwitchListTile(
-                  value: s.enabled,
-                  onChanged: (v) =>
-                      _update(s.copyWith(enabled: v)),
-                  title: const Text('每天提醒我记录'),
-                  subtitle: const Text('本地通知，不联网、不上传任何数据'),
+                SoftCard(
+                  padding: EdgeInsets.zero,
+                  child: SwitchListTile(
+                    value: s.enabled,
+                    onChanged: (v) => _update(s.copyWith(enabled: v)),
+                    title: const Text('每天提醒我记录'),
+                    subtitle: const Text('本地通知，不联网、不上传任何数据'),
+                  ),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  enabled: s.enabled,
-                  title: const Text('提醒时间'),
-                  subtitle: Text(s.timeLabel),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: s.enabled ? _pickTime : null,
+                const SizedBox(height: AppTokens.cardGap),
+                SoftCard(
+                  padding: EdgeInsets.zero,
+                  child: ListTile(
+                    enabled: s.enabled,
+                    leading: Icon(Icons.schedule, color: colors.brand),
+                    title: const Text('提醒时间'),
+                    subtitle: Text(reminderTimeLabel(s.hour, s.minute)),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: s.enabled ? _pickTime : null,
+                  ),
                 ),
-                const SizedBox(height: AppTokens.spaceM),
+                const SizedBox(height: AppTokens.spaceL),
+                // 静默时段的解释：不解释的话用户会以为"提醒坏了"
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.bedtime_outlined,
+                      size: 16,
+                      color: scheme.onSurface.withAlpha(120),
+                    ),
+                    const SizedBox(width: AppTokens.spaceS),
+                    Expanded(
+                      child: Text(
+                        '22:00–07:00 是静默时段，不打扰睡眠。'
+                        '若把时间设在这段时间里，会自动顺延到 07:00 之后提醒。',
+                        style: AppTokens.caption.copyWith(
+                          color: scheme.onSurface.withAlpha(150),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTokens.spaceS),
                 Text(
                   '提醒使用系统定时器（AlarmManager），精确到分钟。'
                   '修改系统时间或重启手机后，系统会自动恢复闹钟。',

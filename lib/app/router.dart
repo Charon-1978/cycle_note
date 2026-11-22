@@ -19,6 +19,7 @@ import '../features/me/pages/data_sources_page.dart';
 import '../features/me/pages/export_page.dart';
 import '../features/me/pages/me_page.dart';
 import '../features/me/pages/privacy_page.dart';
+import '../features/update/update_page.dart';
 import '../features/period/pages/period_history_page.dart';
 import '../features/reminders/pages/reminder_page.dart';
 import '../features/today/pages/today_page.dart';
@@ -63,6 +64,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/me/meal-plan',
         builder: (_, __) => const MealPlanPage(),
+      ),
+      GoRoute(
+        path: '/me/update',
+        builder: (_, __) => const UpdatePage(),
       ),
       GoRoute(
         path: '/me/data-sources',

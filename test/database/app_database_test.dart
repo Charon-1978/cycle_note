@@ -64,7 +64,25 @@ void main() {
 
   test('迁移版本号必须与文档一致（只增不减）', () {
     // 改这里之前先想清楚：这个数字一旦减小，老用户会走不到新迁移分支
-    expect(AppDatabase.kSchemaVersion, 3);
+    // v4 = body_profiles 增加 body_fat_percent（体脂率 → Katch-McArdle）
+    expect(AppDatabase.kSchemaVersion, 4);
+  });
+
+  test('v4：body_profiles 有 body_fat_percent 列且可读写', () async {
+    await db.into(db.bodyProfiles).insert(
+          BodyProfilesCompanion.insert(
+            id: const Value(1),
+            sex: 'female',
+            age: 28,
+            heightCm: 165,
+            startWeightKg: 60,
+            activityLevel: 'light',
+            bodyFatPercent: const Value(26.5),
+          ),
+        );
+
+    final row = await db.select(db.bodyProfiles).getSingle();
+    expect(row.bodyFatPercent, 26.5);
   });
 
   test('周期可写入并读回', () async {

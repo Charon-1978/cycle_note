@@ -1,0 +1,25 @@
+﻿#!/bin/sh
+# .githooks/pre-commit
+#
+# 提交前跑一次隐私/密钥自检（_tools/privacy_scan.ps1）。
+# 启用：git config core.hooksPath .githooks
+#
+# 有阻断项（明文凭据、会被提交的 keystore/APK）时返回非 0，提交被拦下。
+# 想临时跳过：git commit --no-verify
+
+SCAN="_tools/privacy_scan.ps1"
+if [ ! -f "$SCAN" ]; then
+  echo "[pre-commit] 没找到 $SCAN，跳过自检"
+  exit 0
+fi
+
+if command -v pwsh >/dev/null 2>&1; then
+  pwsh -NoProfile -File "$SCAN"
+elif command -v powershell.exe >/dev/null 2>&1; then
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCAN"
+else
+  echo "[pre-commit] 没找到 PowerShell，跳过自检"
+  exit 0
+fi
+
+exit $?

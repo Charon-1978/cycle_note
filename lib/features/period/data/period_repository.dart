@@ -18,9 +18,18 @@ import '../services/period_history_editor.dart';
 import '../services/period_prediction_service.dart';
 
 class PeriodRepository {
-  PeriodRepository(this._db);
+  PeriodRepository(this._db, {DateTime Function()? now})
+      : _now = now ?? DateTime.now;
 
   final AppDatabase _db;
+
+  /// 「今天」的唯一来源。
+  ///
+  /// 为什么要可注入：补记/删除历史经期时会按「今天」裁掉未来日期，
+  /// 若直接调 `DateTime.now()`，测试只能把期望值跟着真实日期漂移
+  /// （2026-11-22 就因此红过两条：期望 56 天，实际 57 天）。
+  /// 生产代码不传，等价于 `DateTime.now`。
+  final DateTime Function() _now;
 
   // ---------------- 读 ----------------
 
@@ -181,6 +190,7 @@ class PeriodRepository {
           existing: existing,
           start: start,
           end: end,
+          today: _now(),
         ));
   }
 
@@ -270,7 +280,7 @@ class PeriodRepository {
         before.addAll(_daysOf(_toInput(r)));
       }
       final editor = const PeriodHistoryEditor();
-      final today = _dateOnly(DateTime.now());
+      final today = _dateOnly(_now());
       for (final d in edit.periodDays) {
         // 未结束周期按 5 天估算出来的「未来日期」不落库：
         // 日历只应该标到"今天"，把明天标成经期日是假数据。

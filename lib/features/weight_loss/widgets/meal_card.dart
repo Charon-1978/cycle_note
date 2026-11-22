@@ -10,6 +10,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_tokens.dart';
+import '../../../core/widgets/surface/soft_card.dart';
 import '../models/weight_loss_models.dart';
 
 class MealCard extends StatelessWidget {
@@ -43,16 +44,7 @@ class MealCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return Container(
-      padding: const EdgeInsets.all(AppTokens.spaceL),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: AppTokens.borderM,
-        border: Border.all(
-          color: scheme.onSurface.withAlpha(20),
-          width: AppTokens.borderWidth,
-        ),
-      ),
+    return SoftCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

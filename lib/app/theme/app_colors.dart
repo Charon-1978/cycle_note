@@ -1,4 +1,4 @@
-// lib/app/theme/app_colors.dart
+﻿// lib/app/theme/app_colors.dart
 //
 // 语义色（Semantic Colors）——扩展 Material 的 ColorScheme。
 //
@@ -27,6 +27,14 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.danger,
     required this.track,
     required this.grid,
+    required this.brand,
+    required this.brandSoft,
+    required this.heroStart,
+    required this.heroEnd,
+    required this.surface,
+    required this.pageBg,
+    required this.shadow,
+    required this.exercise,
   });
 
   /// 经期。生理语义，用红不构成负面暗示。
@@ -62,6 +70,36 @@ class AppColors extends ThemeExtension<AppColors> {
   /// 图表网格线。
   final Color grid;
 
+  // ---------------- 界面层（2026-11 视觉升级新增） ----------------
+  //
+  // 这五个不是「业务语义」，而是「界面语义」。仍然放在这里而不是散到页面里，
+  // 理由同 R10：深浅色两套值必须只有一个来源，否则改主题要改几十个文件。
+
+  /// 品牌强调色：渐变按钮、强调条、选中态。
+  final Color brand;
+
+  /// 品牌浅底：胶囊标签背景、图标底色（浅色下是淡玫瑰，深色下是暗玫瑰）。
+  final Color brandSoft;
+
+  /// 首屏渐变头的起止色。必须成对使用。
+  final Color heroStart;
+  final Color heroEnd;
+
+  /// 卡片表面。浅色纯白、深色比 pageBg 略亮一档，卡片才有层次。
+  final Color surface;
+
+  /// 页面底色。浅色是极淡玫瑰灰，让白卡浮起来；深色接近纯黑。
+  final Color pageBg;
+
+  /// 卡片投影色（已带透明度，直接给 BoxShadow 用）。
+  final Color shadow;
+
+  /// 运动消耗（热量环的内圈弧、运动相关强调）。
+  ///
+  /// 为什么不用 fertile：fertile 与 calorieOk 都是绿色，两条弧画在同一张环上
+  /// 分不出来（2026-11 走查实测）。运动用蓝，与绿（摄入）/橙（超标）都不撞。
+  final Color exercise;
+
   // ---------------- 浅色 ----------------
   static const AppColors light = AppColors(
     period: Color(0xFFE4586F),
@@ -75,6 +113,14 @@ class AppColors extends ThemeExtension<AppColors> {
     danger: Color(0xFFC62828),
     track: Color(0x14202A3A),
     grid: Color(0x1F202A3A),
+    brand: Color(0xFFD8475F),
+    brandSoft: Color(0xFFFFEDF0),
+    heroStart: Color(0xFFF98A9B),
+    heroEnd: Color(0xFFE4586F),
+    surface: Color(0xFFFFFFFF),
+    pageBg: Color(0xFFFFF7F8),
+    shadow: Color(0x1A202A3A),
+    exercise: Color(0xFF2F7FB8),
   );
 
   // ---------------- 深色 ----------------
@@ -91,6 +137,14 @@ class AppColors extends ThemeExtension<AppColors> {
     danger: Color(0xFFE05252),
     track: Color(0x1FFFFFFF),
     grid: Color(0x14FFFFFF),
+    brand: Color(0xFFF07C90),
+    brandSoft: Color(0xFF3A2228),
+    heroStart: Color(0xFF6B2733),
+    heroEnd: Color(0xFF3E171F),
+    surface: Color(0xFF161B20),
+    pageBg: Color(0xFF0E1216),
+    shadow: Color(0x66000000),
+    exercise: Color(0xFF63AEE0),
   );
 
   /// 取当前主题下的语义色。若 Theme 未挂载（如 ErrorWidget），回退浅色。
@@ -112,6 +166,14 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? danger,
     Color? track,
     Color? grid,
+    Color? brand,
+    Color? brandSoft,
+    Color? heroStart,
+    Color? heroEnd,
+    Color? surface,
+    Color? pageBg,
+    Color? shadow,
+    Color? exercise,
   }) {
     return AppColors(
       period: period ?? this.period,
@@ -125,6 +187,14 @@ class AppColors extends ThemeExtension<AppColors> {
       danger: danger ?? this.danger,
       track: track ?? this.track,
       grid: grid ?? this.grid,
+      brand: brand ?? this.brand,
+      brandSoft: brandSoft ?? this.brandSoft,
+      heroStart: heroStart ?? this.heroStart,
+      heroEnd: heroEnd ?? this.heroEnd,
+      surface: surface ?? this.surface,
+      pageBg: pageBg ?? this.pageBg,
+      shadow: shadow ?? this.shadow,
+      exercise: exercise ?? this.exercise,
     );
   }
 
@@ -143,6 +213,14 @@ class AppColors extends ThemeExtension<AppColors> {
       danger: Color.lerp(danger, other.danger, t)!,
       track: Color.lerp(track, other.track, t)!,
       grid: Color.lerp(grid, other.grid, t)!,
+      brand: Color.lerp(brand, other.brand, t)!,
+      brandSoft: Color.lerp(brandSoft, other.brandSoft, t)!,
+      heroStart: Color.lerp(heroStart, other.heroStart, t)!,
+      heroEnd: Color.lerp(heroEnd, other.heroEnd, t)!,
+      surface: Color.lerp(surface, other.surface, t)!,
+      pageBg: Color.lerp(pageBg, other.pageBg, t)!,
+      shadow: Color.lerp(shadow, other.shadow, t)!,
+      exercise: Color.lerp(exercise, other.exercise, t)!,
     );
   }
 
@@ -159,6 +237,14 @@ class AppColors extends ThemeExtension<AppColors> {
         danger,
         track,
         grid,
+        brand,
+        brandSoft,
+        heroStart,
+        heroEnd,
+        surface,
+        pageBg,
+        shadow,
+        exercise,
       ];
 }
 
@@ -168,3 +254,5 @@ class AppColors extends ThemeExtension<AppColors> {
 extension AppColorsX on BuildContext {
   AppColors get colors => AppColors.of(this);
 }
+
+

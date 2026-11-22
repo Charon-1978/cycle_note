@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_tokens.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
+import '../../../core/widgets/surface/soft_card.dart';
 import '../../period/providers/period_providers.dart';
 import '../../weight_loss/providers/weight_loss_providers.dart';
 import '../widgets/trend_line_chart.dart';
@@ -52,11 +53,26 @@ class _TrendsPageState extends ConsumerState<TrendsPage> {
             onChanged: (t) => setState(() => _tab = t),
           ),
           const SizedBox(height: AppTokens.cardGap),
-          switch (_tab) {
-            _TrendTab.cycle => const _CycleTrend(),
-            _TrendTab.weight => const _WeightTrend(),
-            _TrendTab.energy => const _EnergyTrend(),
-          },
+          // 三张图共用同一张卡：切换时只有内容变，卡片外框不动，
+          // 视觉上不会"跳一下"（美柚的趋势页也是这个做法）。
+          SoftCard(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.spaceL,
+              AppTokens.spaceL,
+              AppTokens.spaceL,
+              AppTokens.spaceM,
+            ),
+            child: AnimatedSize(
+              duration: AppTokens.durBase,
+              curve: AppTokens.curve,
+              alignment: Alignment.topCenter,
+              child: switch (_tab) {
+                _TrendTab.cycle => const _CycleTrend(),
+                _TrendTab.weight => const _WeightTrend(),
+                _TrendTab.energy => const _EnergyTrend(),
+              },
+            ),
+          ),
         ],
       ),
     );

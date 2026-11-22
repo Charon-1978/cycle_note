@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 9+ 默认禁止明文 HTTP。更新通道里 GitHub 一定是 https，
+  但内网 NASHub 目前是 http://192.168.31.48:18080，所以只对这一个地址放行明文，
+  其余域名继续强制 https —— 不是全局 usesCleartextTraffic="true"。
+
+  要加公网 HTTPS 域名时：把它写进 update_config.dart（https 地址），这里不用改。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- 家里 NAS（NASHub 所在机器） -->
+        <domain includeSubdomains="false">192.168.31.48</domain>
+        <!-- 本机调试（模拟器/桌面端联调） -->
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

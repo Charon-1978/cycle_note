@@ -1,4 +1,4 @@
-// lib/features/weight_loss/pages/weight_log_page.dart
+﻿// lib/features/weight_loss/pages/weight_log_page.dart
 //
 // 体重趋势（P1-4）。
 //
@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_tokens.dart';
+import '../../../core/widgets/surface/soft_card.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import '../../../core/widgets/input/quick_action_sheet.dart';
 import '../data/weight_loss_repository.dart' show WeightPoint;
@@ -117,16 +118,7 @@ class _SummaryCard extends StatelessWidget {
         ? scheme.onSurfaceVariant
         : (diff > 0.05 ? colors.weightUp : colors.weightDown);
 
-    return Container(
-      padding: const EdgeInsets.all(AppTokens.spaceL),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: AppTokens.borderL,
-        border: Border.all(
-          color: scheme.onSurface.withAlpha(20),
-          width: AppTokens.borderWidth,
-        ),
-      ),
+    return SoftCard(
       child: Row(
         children: [
           Expanded(
@@ -177,16 +169,7 @@ class _ChartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(AppTokens.spaceL),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: AppTokens.borderL,
-        border: Border.all(
-          color: scheme.onSurface.withAlpha(20),
-          width: AppTokens.borderWidth,
-        ),
-      ),
+    return SoftCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -299,3 +282,4 @@ class _RecentList extends ConsumerWidget {
     );
   }
 }
+

@@ -14,6 +14,28 @@
 
 import 'period_prediction_service.dart';
 
+/// 从 [start] 起最多还能补几天（**含** start 当天），受 [today] 限制。
+///
+/// 补记的语义是「补历史」：结束日不能晚于今天。
+/// 这个函数是 UI 与校验层的**唯一口径** —— 弹层用它决定哪些「N 天」可选、
+/// 按钮用它算实际结束日，服务层再用 `upsert` 里的 `e.isAfter(today)` 兜底。
+///
+/// 返回 0 表示 [start] 本身就在未来（这一天不该被补记）。
+/// 上限取 [PeriodHistoryEditor.maxPeriodLength]（30 天），与生理区间一致。
+int maxBackfillDays({
+  required DateTime start,
+  required DateTime today,
+  int maxPeriodLength = PeriodHistoryEditor.maxPeriodLength,
+}) {
+  final s = _onlyDate(start);
+  final t = _onlyDate(today);
+  if (s.isAfter(t)) return 0;
+  final days = t.difference(s).inDays + 1;
+  return days > maxPeriodLength ? maxPeriodLength : days;
+}
+
+DateTime _onlyDate(DateTime d) => DateTime(d.year, d.month, d.day);
+
 /// 补记结果。
 class PeriodEditResult {
   const PeriodEditResult._({
@@ -45,10 +67,19 @@ class PeriodEditResult {
 
 class PeriodHistoryEditor {
   const PeriodHistoryEditor();
-
   /// 最少/最大经期长度（与预测服务的生理区间保持一致）。
-  static const int minPeriodLength = 2;
-  static const int maxPeriodLength = 10;
+  /// 经期长度下限：1 天。
+  ///
+  /// 2026-11 从 2 天放宽到 1 天：点滴出血、只来一天的情况真实存在，
+  /// 强制 ≥2 天会让用户只能放弃记录。
+  static const int minPeriodLength = 1;
+
+  /// 经期长度上限：30 天。
+  ///
+  /// 2026-11 从 10 天放宽到 30 天：用户反馈"异常经期（淋漓不尽、内分泌紊乱）
+  /// 可能超过 7 天，甚至两三周"，卡在 10 天等于让这部分人没法记录。
+  /// 30 天是"一个月内"的物理上限，超过基本意味着日期选错了。
+  static const int maxPeriodLength = 30;
 
   /// 两次经期开始日之间的最小间隔。
   ///

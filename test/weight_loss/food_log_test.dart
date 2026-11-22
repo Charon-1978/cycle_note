@@ -1,4 +1,4 @@
-// test/weight_loss/food_log_test.dart
+﻿// test/weight_loss/food_log_test.dart
 //
 // P2-3 的验收测试，逐条对应手册：
 //   · 支持「按份」与「按克」两种输入（换算一致）
@@ -63,8 +63,8 @@ void main() {
   });
 
   group('迁移与自建食物', () {
-    test('schema 版本已升到 3，onCreate 能建出全部 9 张表', () async {
-      expect(AppDatabase.kSchemaVersion, 3);
+    test('schema 版本已升到 4，onCreate 能建出全部 9 张表', () async {
+      expect(AppDatabase.kSchemaVersion, 4);
       // 任何一张表建不出来，下面的查询就会抛
       await db.select(db.customFoods).get();
       await db.select(db.mealLogs).get();
@@ -420,3 +420,5 @@ class TdeeStub {
         bmrFormula: 'Mifflin-St Jeor',
       );
 }
+
+

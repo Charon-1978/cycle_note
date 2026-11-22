@@ -150,7 +150,7 @@ void main() {
     test('Kotlin provider / 布局 / appwidget-info / manifest 接线齐全', () {
       final root = Directory.current.path;
       final files = <String, List<String>>{
-        'android/app/src/main/kotlin/com/example/cycle_note/HomeWidgetProvider.kt':
+        'android/app/src/main/kotlin/com/yueji/note/HomeWidgetProvider.kt':
             ['HomeWidgetPreferences', 'widget_intake', 'R.layout.widget_today'],
         'android/app/src/main/res/layout/widget_today.xml':
             ['widget_intake', 'widget_budget', 'widget_weight'],
@@ -176,9 +176,9 @@ void main() {
           reason: 'manifest 没挂 appwidget-provider 配置');
       // Kotlin 包名必须与 applicationId/namespace 一致
       final kotlin = File(
-        '$root/android/app/src/main/kotlin/com/example/cycle_note/HomeWidgetProvider.kt',
+        '$root/android/app/src/main/kotlin/com/yueji/note/HomeWidgetProvider.kt',
       ).readAsStringSync();
-      expect(kotlin.contains('package com.example.cycle_note'), isTrue);
+      expect(kotlin.contains('package com.yueji.note'), isTrue);
     });
   });
 }

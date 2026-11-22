@@ -256,6 +256,11 @@ class WeightLossRepository {
     await (_db.delete(_db.mealLogs)..where((t) => t.id.equals(id))).go();
   }
 
+  /// 删除一条运动记录（记错了要能删，和饮食同口径）。
+  Future<void> deleteExercise(int id) async {
+    await (_db.delete(_db.exerciseLogs)..where((t) => t.id.equals(id))).go();
+  }
+
   Future<void> addMeal({
     required String mealType,
     required FoodItem food,

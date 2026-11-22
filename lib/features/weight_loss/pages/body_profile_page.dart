@@ -63,6 +63,10 @@ class _BodyProfilePageState extends ConsumerState<BodyProfilePage> {
   final TextEditingController _ageCtrl = TextEditingController();
   final TextEditingController _heightCtrl = TextEditingController();
   final TextEditingController _weightCtrl = TextEditingController();
+
+  /// 体脂率（可选）。填了就会改用 Katch-McArdle：它按去脂体重算基础代谢，
+  /// 对"肌肉量明显偏离平均"的人比单纯按体重算更准。
+  final TextEditingController _bodyFatCtrl = TextEditingController();
   final TextEditingController _targetCtrl = TextEditingController();
 
   Sex _sex = Sex.female;
@@ -88,6 +92,7 @@ class _BodyProfilePageState extends ConsumerState<BodyProfilePage> {
     _ageCtrl.dispose();
     _heightCtrl.dispose();
     _weightCtrl.dispose();
+    _bodyFatCtrl.dispose();
     _targetCtrl.dispose();
     super.dispose();
   }
@@ -109,6 +114,9 @@ class _BodyProfilePageState extends ConsumerState<BodyProfilePage> {
         _ageCtrl.text = p.age.toString();
         _heightCtrl.text = _trimNumber(p.heightCm);
         _weightCtrl.text = _trimNumber(p.weightKg);
+        _bodyFatCtrl.text = p.bodyFatPercent == null
+            ? ''
+            : _trimNumber(p.bodyFatPercent!);
         _targetCtrl.text =
             p.targetWeightKg == null ? '' : _trimNumber(p.targetWeightKg!);
       } else {
@@ -133,6 +141,7 @@ class _BodyProfilePageState extends ConsumerState<BodyProfilePage> {
   double? get _age => _parse(_ageCtrl);
   double? get _height => _parse(_heightCtrl);
   double? get _weight => _parse(_weightCtrl);
+  double? get _bodyFat => _parse(_bodyFatCtrl);
 
   /// 各字段的合法区间。故意放宽到"极端但真实存在"的范围，
   /// 只拦明显手误（把 165 打成 16.5 / 1650）。
@@ -140,11 +149,16 @@ class _BodyProfilePageState extends ConsumerState<BodyProfilePage> {
   static const _heightRange = (min: 100.0, max: 250.0);
   static const _weightRange = (min: 25.0, max: 300.0);
 
+  /// 体脂率：3% 以下不可能是活人，60% 以上基本是手误。
+  static const _bodyFatRange = (min: 3.0, max: 60.0);
+
   String? get _ageError => _rangeError(_age, _ageRange.min, _ageRange.max);
   String? get _heightError =>
       _rangeError(_height, _heightRange.min, _heightRange.max);
   String? get _weightError =>
       _rangeError(_weight, _weightRange.min, _weightRange.max);
+  String? get _bodyFatError =>
+      _rangeError(_bodyFat, _bodyFatRange.min, _bodyFatRange.max);
 
   static String? _rangeError(double? v, double min, double max) {
     if (v == null) return null; // 空值由"能否计算"统一处理，这里不报红
@@ -170,6 +184,14 @@ class _BodyProfilePageState extends ConsumerState<BodyProfilePage> {
         ? target
         : null;
 
+    // 体脂率同理：非法值不参与计算，也不阻断保存（它是可选项）
+    final bodyFat = _bodyFat;
+    final validBodyFat = (bodyFat != null &&
+            bodyFat >= _bodyFatRange.min &&
+            bodyFat <= _bodyFatRange.max)
+        ? bodyFat
+        : null;
+
     return UserProfile(
       sex: _sex,
       age: age.round(),
@@ -179,6 +201,7 @@ class _BodyProfilePageState extends ConsumerState<BodyProfilePage> {
       goal: _goal,
       pace: _pace,
       targetWeightKg: validTarget,
+      bodyFatPercent: validBodyFat,
     );
   }
 
@@ -265,9 +288,11 @@ class _BodyProfilePageState extends ConsumerState<BodyProfilePage> {
                   ageCtrl: _ageCtrl,
                   heightCtrl: _heightCtrl,
                   weightCtrl: _weightCtrl,
+                  bodyFatCtrl: _bodyFatCtrl,
                   ageError: _ageError,
                   heightError: _heightError,
                   weightError: _weightError,
+                  bodyFatError: _bodyFatError,
                   onChanged: () => setState(() {}),
                 ),
                 const SizedBox(height: AppTokens.cardGap),
@@ -293,8 +318,13 @@ class _BodyProfilePageState extends ConsumerState<BodyProfilePage> {
                 ),
                 const SizedBox(height: AppTokens.spaceL),
                 Text(
-                  '计算基于 Mifflin-St Jeor 公式与通用活动系数，属于估算值，'
-                  '不能替代医学建议。',
+                  // 脚注必须跟着实际用的公式走：填了体脂率就在算 Katch-McArdle，
+                  // 这里还写 Mifflin-St Jeor 会让人以为算错了。
+                  _draftProfile?.bodyFatPercent != null
+                      ? '计算基于 Katch-McArdle 公式（按体脂率推算去脂体重）'
+                          '与通用活动系数，属于估算值，不能替代医学建议。'
+                      : '计算基于 Mifflin-St Jeor 公式与通用活动系数，'
+                          '属于估算值，不能替代医学建议。',
                   style: AppTokens.caption.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -329,7 +359,7 @@ class _Section extends StatelessWidget {
       padding: const EdgeInsets.all(AppTokens.spaceL),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: AppTokens.borderM,
+        borderRadius: AppTokens.borderL,
         border: Border.all(
           width: AppTokens.borderWidth,
           color: theme.colorScheme.onSurface
@@ -368,9 +398,11 @@ class _BasicSection extends StatelessWidget {
     required this.ageCtrl,
     required this.heightCtrl,
     required this.weightCtrl,
+    required this.bodyFatCtrl,
     required this.ageError,
     required this.heightError,
     required this.weightError,
+    required this.bodyFatError,
     required this.onChanged,
   });
 
@@ -379,16 +411,19 @@ class _BasicSection extends StatelessWidget {
   final TextEditingController ageCtrl;
   final TextEditingController heightCtrl;
   final TextEditingController weightCtrl;
+  final TextEditingController bodyFatCtrl;
   final String? ageError;
   final String? heightError;
   final String? weightError;
+  final String? bodyFatError;
   final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
     return _Section(
       title: '基础信息',
-      hint: '性别和年龄决定基础代谢的系数，身高体重决定代谢总量。',
+      hint: '性别和年龄决定基础代谢的系数，身高体重决定代谢总量；'
+          '填了体脂率会改用 Katch-McArdle（按去脂体重算，更准）。',
       children: [
         SegmentedButton<Sex>(
           segments: [
@@ -427,13 +462,32 @@ class _BasicSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppTokens.spaceM),
-        _NumberField(
-          controller: weightCtrl,
-          label: '当前体重',
-          suffix: 'kg',
-          decimal: true,
-          errorText: weightError,
-          onChanged: onChanged,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: _NumberField(
+                controller: weightCtrl,
+                label: '当前体重',
+                suffix: 'kg',
+                decimal: true,
+                errorText: weightError,
+                onChanged: onChanged,
+              ),
+            ),
+            const SizedBox(width: AppTokens.spaceM),
+            Expanded(
+              child: _NumberField(
+                controller: bodyFatCtrl,
+                label: '体脂率',
+                suffix: '%',
+                decimal: true,
+                errorText: bodyFatError,
+                onChanged: onChanged,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -845,3 +899,4 @@ class _Notice extends StatelessWidget {
     );
   }
 }
+

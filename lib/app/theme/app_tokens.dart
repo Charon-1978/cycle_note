@@ -37,7 +37,17 @@ abstract final class AppTokens {
   // ---------------- 圆角 ----------------
   static const double radiusS = 8;
   static const double radiusM = 12;
-  static const double radiusL = 16;
+
+  /// 卡片圆角。2026-11 视觉升级从 16 调到 20：
+  /// 旧页面的卡片都写的是 `AppTokens.borderL`，改这一处等于全站统一，
+  /// 不用逐个页面改（也避免为了圆角去动 10 个文件的 diff）。
+  static const double radiusL = 20;
+
+  /// 与 radiusL 同值，语义更明确的别名（新代码用这个）。
+  static const double radiusXl = 20;
+
+  /// 大容器 / 首屏渐变头 / 底部弹层顶部圆角。
+  static const double radiusXxl = 28;
 
   /// 胶囊（标签、FAB）。
   static const double radiusPill = 999;
@@ -45,6 +55,37 @@ abstract final class AppTokens {
   static const BorderRadius borderS = BorderRadius.all(Radius.circular(radiusS));
   static const BorderRadius borderM = BorderRadius.all(Radius.circular(radiusM));
   static const BorderRadius borderL = BorderRadius.all(Radius.circular(radiusL));
+  static const BorderRadius borderXl =
+      BorderRadius.all(Radius.circular(radiusXl));
+  static const BorderRadius borderXxl =
+      BorderRadius.all(Radius.circular(radiusXxl));
+  static const BorderRadius borderPill =
+      BorderRadius.all(Radius.circular(radiusPill));
+
+  /// 首屏渐变头只圆下缘。
+  static const BorderRadius borderBottomXxl = BorderRadius.vertical(
+    bottom: Radius.circular(radiusXxl),
+  );
+
+  // ---------------- 阴影 ----------------
+  //
+  // 只用两档，避免每张卡自己调阴影导致页面脏。
+  // 颜色由调用方给（令牌层不持有颜色，R10 的颜色来源只有 AppColors）。
+  static List<BoxShadow> shadowSoft(Color color) => [
+        BoxShadow(
+          color: color,
+          blurRadius: 18,
+          offset: const Offset(0, 6),
+        ),
+      ];
+
+  static List<BoxShadow> shadowLifted(Color color) => [
+        BoxShadow(
+          color: color,
+          blurRadius: 28,
+          offset: const Offset(0, 10),
+        ),
+      ];
 
   // ---------------- 动效时长 ----------------
   /// 颜色/透明度切换。

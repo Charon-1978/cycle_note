@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'reminder_messages.dart';
 import 'reminder_scheduler.dart';
 
 /// 提醒偏好（纯数据，可测）。
@@ -135,13 +136,17 @@ class ReminderService {
       channelDescription: _channelDesc,
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
+      styleInformation: BigTextStyleInformation(''),
     );
     const details = NotificationDetails(android: androidDetails);
 
+    // 文案按"触发那天"轮换；同一天重排也是同一句，不会跳来跳去。
+    final msg = reminderMessageFor(trigger);
+
     await _plugin.zonedSchedule(
       _dailyId,
-      '该记录今天的情况啦',
-      '花一分钟记一下经期与体重，趋势才看得见',
+      msg.title,
+      msg.body,
       trigger,
       details,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,

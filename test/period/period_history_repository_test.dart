@@ -24,7 +24,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    repo = PeriodRepository(db);
+    // 「今天」锁死在 11/21：下面所有断言（56 天、28/28）都以它为基准。
+    // 注入时钟而不是用真实 DateTime.now()，否则每过一天就红一次。
+    repo = PeriodRepository(db, now: () => d(2026, 11, 21));
 
     // 基线：两段历史 + 一个进行中（今天）
     await repo.upsertHistoricalPeriod(
@@ -35,7 +37,7 @@ void main() {
       start: d(2026, 10, 24),
       end: d(2026, 10, 28),
     );
-    await repo.startPeriod(DateTime.now());
+    await repo.startPeriod(d(2026, 11, 21));
   });
 
   tearDown(() async {

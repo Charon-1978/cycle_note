@@ -11,15 +11,15 @@ import 'package:cycle_note/app/theme/app_colors.dart';
 
 void main() {
   group('AppColors 完整性', () {
-    test('浅色：11 个语义色全部已定义', () {
-      expect(AppColors.light.all.length, 11);
+    test('浅色：19 个语义色全部已定义', () {
+      expect(AppColors.light.all.length, 19);
       for (final c in AppColors.light.all) {
         expect(c, isNotNull);
       }
     });
 
-    test('深色：11 个语义色全部已定义', () {
-      expect(AppColors.dark.all.length, 11);
+    test('深色：19 个语义色全部已定义', () {
+      expect(AppColors.dark.all.length, 19);
       for (final c in AppColors.dark.all) {
         expect(c, isNotNull);
       }
@@ -48,6 +48,14 @@ void main() {
       expect(AppColors.light.calorieOk, isNot(AppColors.dark.calorieOk));
       expect(AppColors.light.weightUp, isNot(AppColors.dark.weightUp));
     });
+
+    test('exercise 不能与摄入绿同色（热量环的两条弧要分得开）', () {
+      // 2026-11 走查发现：摄入弧 calorieOk 与运动弧 fertile 都是绿色，
+      // 内圈细弧在实机上几乎看不见，所以运动单独用 exercise（蓝）。
+      expect(AppColors.light.exercise, isNot(AppColors.light.calorieOk));
+      expect(AppColors.light.exercise, isNot(AppColors.light.fertile));
+      expect(AppColors.dark.exercise, isNot(AppColors.dark.calorieOk));
+    });
   });
 
   group('copyWith / lerp', () {
@@ -71,3 +79,4 @@ void main() {
     });
   });
 }
+

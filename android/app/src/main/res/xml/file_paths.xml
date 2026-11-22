@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider 路径：只暴露缓存目录，别的目录一律不给系统安装器。
+     下载的 APK 落在 path_provider 的 getTemporaryDirectory()，
+     在 Android 上就是 context.getCacheDir() 下的子目录，所以用 cache-path。 -->
+<paths>
+    <cache-path name="cache" path="." />
+</paths>

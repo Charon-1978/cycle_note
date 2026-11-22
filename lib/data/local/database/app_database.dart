@@ -41,7 +41,8 @@ class AppDatabase extends _$AppDatabase {
   /// v1: 减脂 5 表
   /// v2: 经期 3 表（PeriodCycles / DailyRecords / PredictionCaches）
   /// v3: 自建食物表（CustomFoods，P2-3）
-  static const int kSchemaVersion = 3;
+  /// v4: body_profiles 加 body_fat_percent 列（体脂率 → Katch-McArdle）
+  static const int kSchemaVersion = 4;
 
   /// 生产用：加密开库 + 升级前自动备份。
   AppDatabase()
@@ -69,8 +70,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             await m.createTable(customFoods);
           }
-          // 后续版本在此追加：
-          // if (from < 3) { ... }
+          if (from < 4) {
+            // 只加列，不重建表：老用户已有的档案与体重记录原样保留。
+            await m.addColumn(bodyProfiles, bodyProfiles.bodyFatPercent);
+          }
         } catch (_) {
           // 打失败标记并保留备份，让下次启动可以提示恢复
           await DbBackup.markUpgradeFailed();

@@ -1,4 +1,4 @@
-// test/tools/gen_icons_test.dart
+﻿// test/tools/gen_icons_test.dart
 //
 // 品牌图标生成器（一次性工具，留在仓库里是为了"图标可以随时重新生成"）。
 //
@@ -42,12 +42,23 @@ const _foreground = <String, int>{
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('生成品牌图标', (tester) async {
+  // 这是**生成器**，不是断言型测试：它会直接覆盖 res/ 与 assets/branding 下的
+  // 真实图标文件。默认跳过，否则每次 `flutter test` 都会把仓库里的图标重刷一遍
+  // （渲染结果存在几个字节的抖动，git 每天都会脏）。
+  //
+  // 需要重新生成时：
+  //   PowerShell:  $env:GEN_ICONS='1'; flutter test test/tools/gen_icons_test.dart
+  //   bash:        GEN_ICONS=1 flutter test test/tools/gen_icons_test.dart
+  final regenerate = Platform.environment['GEN_ICONS'] == '1';
+
+  testWidgets('生成设计稿预览（写入 build/icon_preview，不覆盖正式图标）', (tester) async {
     await tester.runAsync(() async {
-      final res = Directory('android/app/src/main/res');
+      // 正式图标已经是「旧版 APK 提取的原图标」（_tools/extract_icon.ps1），
+      // 这里只生成设计稿预览，写到 build/ 下，避免误覆盖 res/。
+      final res = Directory('build/icon_preview/mipmap');
 
       for (final e in _legacy.entries) {
-        final dir = Directory('${res.path}/${e.key}');
+        final dir = Directory('${res.path}-${e.key}');
         await dir.create(recursive: true);
         final png = await _render(
           size: e.value.toDouble(),
@@ -58,7 +69,7 @@ void main() {
       }
 
       for (final e in _foreground.entries) {
-        final dir = Directory('${res.path}/${e.key}');
+        final dir = Directory('${res.path}-${e.key}');
         await dir.create(recursive: true);
         // 内容缩到 66%：自适应图标按 72dp 裁切，超出会切边
         final png = await _render(
@@ -70,12 +81,12 @@ void main() {
         await File('${dir.path}/ic_launcher_foreground.png').writeAsBytes(png);
       }
 
-      final branding = Directory('assets/branding');
+      final branding = Directory('build/icon_preview');
       await branding.create(recursive: true);
       final big = await _render(size: 1024, rounded: true, contentScale: 1.0);
       await File('${branding.path}/icon_1024.png').writeAsBytes(big);
     });
-  });
+  }, skip: !regenerate, timeout: const Timeout(Duration(minutes: 2)));
 }
 
 /// 画一张图标。
@@ -140,3 +151,4 @@ Future<List<int>> _render({
   final data = await image.toByteData(format: ui.ImageByteFormat.png);
   return data!.buffer.asUint8List();
 }
+

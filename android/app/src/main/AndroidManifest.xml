@@ -1,8 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 刻意**不申请** INTERNET 权限。
-         原计划的 AI 模块未纳入本期，应用内没有任何网络请求；
-         「数据来源」页的外链由系统浏览器打开，不需要宿主联网权限。
-         最小权限是隐私承诺里可以写死的一条：用户可以自己去系统设置里核对。 -->
+    <!-- 在线更新（2026-11-22 新增）：需要联网拉 manifest 与下载 APK。
+         使用边界写死在这里，避免以后有人顺手加埋点：
+           · 只在用户点「检查更新 / 下载」时发起请求；
+           · 只访问 update_config.dart 里配置的两个域名；
+           · 不上报任何健康数据、不接第三方 SDK。 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- 安装自己下载的 APK（Android 8.0+ 还需用户在系统设置里授权一次） -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
     <!-- P3-2 每日提醒：本地通知 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -12,13 +17,15 @@
     <application
         android:label="月记"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
+            android:resizeableActivity="true"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
@@ -40,6 +47,17 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- 在线更新：把缓存目录里的 APK 交给系统安装器（只暴露 cache 子目录） -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <!-- P3-2：flutter_local_notifications 的定时通知与开机重排接收器 -->
         <receiver android:exported="false"

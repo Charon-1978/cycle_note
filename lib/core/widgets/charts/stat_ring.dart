@@ -1,4 +1,4 @@
-// lib/core/widgets/charts/stat_ring.dart
+﻿// lib/core/widgets/charts/stat_ring.dart
 //
 // 三段弧热量环：预算（底轨）/ 摄入（主弧）/ 运动（内圈细弧）。
 //
@@ -24,6 +24,7 @@ class StatRing extends StatelessWidget {
     this.burn = 0,
     this.size = 200,
     this.strokeWidth = 12,
+    this.burnColor,
     this.centerChild,
     this.animate = true,
   });
@@ -39,6 +40,9 @@ class StatRing extends StatelessWidget {
 
   final double size;
   final double strokeWidth;
+  /// 运动弧颜色。默认取 AppColors.exercise（蓝），与摄入弧（绿）区分开。
+  final Color? burnColor;
+
   final Widget? centerChild;
 
   /// 关闭动画（用于 golden test）。
@@ -125,8 +129,11 @@ class StatRing extends StatelessWidget {
         intakeProgress: _intakeProgress * factor,
         burnProgress: _burnProgress * factor,
         mainColor: mainColor,
-        trackColor: colors.track,
-        burnColor: colors.fertile,
+        // 有预算时底轨用品牌色的淡影（"容量"的感觉），没有预算才用中性轨。
+        // 之所以不用纯灰：0 摄入时整环是灰的，首屏看起来像"没数据"。
+        trackColor: budget > 0 ? colors.brand.withAlpha(26) : colors.track,
+        // 运动弧单独用 exercise（蓝）：摄入弧是 calorieOk（绿），同色会糊成一条
+        burnColor: burnColor ?? colors.exercise,
         strokeWidth: strokeWidth,
       ),
     );
@@ -163,6 +170,7 @@ class _RingPainter extends CustomPainter {
     final track = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
       ..color = trackColor;
     canvas.drawCircle(center, outerRadius, track);
 
@@ -211,3 +219,4 @@ class _RingPainter extends CustomPainter {
         old.strokeWidth != strokeWidth;
   }
 }
+

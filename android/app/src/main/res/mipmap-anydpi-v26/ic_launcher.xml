@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 8+ 自适应图标：背景渐变 + 前景月牙（前景图已留 66% 安全区） -->
+<!-- Android 8+ 自适应图标：沿用旧版「月记」图标（从旧 APK 提取，见 _tools/extract_icon.ps1）。
+     前景 = 原图缩到 66% 安全区 + 边缘羽化（去掉原图的浅色方底硬边）；
+     背景 = 原图四角平均色，保证圆形/方圆/水滴三种裁切下都不露白角。 -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@drawable/ic_launcher_background" />
+    <background android:drawable="@color/ic_launcher_background" />
     <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <!-- 不提供 <monochrome>：原图是柔光渐变，转成单色剪影会变成一团模糊光斑，
+         Android 13 主题图标在缺省时不应用即可，不影响正常图标。 -->
 </adaptive-icon>

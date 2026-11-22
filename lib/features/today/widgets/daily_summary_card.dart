@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_tokens.dart';
+import '../../../core/widgets/surface/soft_card.dart';
 import '../../weight_loss/data/weight_loss_repository.dart';
 import '../../weight_loss/providers/weight_loss_providers.dart';
 
@@ -45,20 +46,17 @@ class _Body extends StatelessWidget {
     final isOver = remain < 0;
     final remainColor = isOver ? colors.calorieOver : scheme.onSurface;
 
-    return Container(
-      padding: const EdgeInsets.all(AppTokens.spaceL),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: AppTokens.borderL,
-        border: Border.all(
-          color: scheme.onSurface.withAlpha(20),
-          width: AppTokens.borderWidth,
-        ),
-      ),
+    return SoftCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('今日明细', style: AppTokens.title),
+          Row(
+            children: [
+              Icon(Icons.receipt_long_outlined, size: 16, color: colors.brand),
+              const SizedBox(width: AppTokens.spaceS),
+              Text('今日明细', style: AppTokens.title),
+            ],
+          ),
           const SizedBox(height: AppTokens.spaceM),
 
           // 一行等式：预算 − 摄入 + 运动 = 余额
