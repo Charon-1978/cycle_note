@@ -1,8 +1,8 @@
 {
   "version": "1.1.2",
-  "notes": "GitHub 账号改名 CharonCore，更新源同步迁移；仍为纯 GitHub 通道（jsDelivr 镜像为同源 CDN）",
+  "notes": "chore(release): 1.1.2 —— 账号改名 CharonCore，更新源同步迁移",
   "apkUrl": "https://github.com/CharonCore/cycle_note/releases/download/v1.1.2/yueji-1.1.2-arm64.apk",
-  "sha256": "50b358b10a1aec84fa8733915fb5b5ad5d4845cd27731bd7730b4f5b788ff252",
-  "size": 31971245,
-  "publishedAt": "2026-11-24T13:30:35Z"
+  "sha256": "d90bba4cddba6eb0f329422783b38ebfe8854a01ad7c736cdcda0bcede5c3107",
+  "size": 31971041,
+  "publishedAt": "2026-11-24T13:42:25Z"
 }
