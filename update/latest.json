@@ -1,8 +1,8 @@
 {
-  "version": "1.1.1",
-  "notes": "chore(release): 1.1.1 —— 脱钩 NAS 后的首个构建",
-  "apkUrl": "https://github.com/Charon-1978/cycle_note/releases/download/v1.1.1/yueji-1.1.1-arm64.apk",
-  "sha256": "19c45d72bd32d0d5cb1ca1eb132806e3b1632c56367adc381536a3a7ce0656e7",
-  "size": 31971037,
-  "publishedAt": "2026-11-22T15:56:36Z"
+  "version": "1.1.2",
+  "notes": "GitHub 账号改名 CharonCore，更新源同步迁移；仍为纯 GitHub 通道（jsDelivr 镜像为同源 CDN）",
+  "apkUrl": "https://github.com/CharonCore/cycle_note/releases/download/v1.1.2/yueji-1.1.2-arm64.apk",
+  "sha256": "50b358b10a1aec84fa8733915fb5b5ad5d4845cd27731bd7730b4f5b788ff252",
+  "size": 31971245,
+  "publishedAt": "2026-11-24T13:30:35Z"
 }

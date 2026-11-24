@@ -1,4 +1,4 @@
-// lib/features/update/update_config.dart
+﻿// lib/features/update/update_config.dart
 //
 // 更新相关的**全部可配置项**集中在这里，替换仓库地址时只改这一个文件。
 //
@@ -19,14 +19,14 @@
 /// 由 test/update/version_sync_test.dart 在 CI 里强制校验。
 const String kAppVersion = String.fromEnvironment(
   'APP_VERSION',
-  defaultValue: '1.1.1',
+  defaultValue: '1.1.2',
 );
 
 /// 主通道 manifest：GitHub raw（CDN 快、无需 API token）。
 const String kUpdateUrlGitHub = String.fromEnvironment(
   'UPDATE_URL_GITHUB',
   defaultValue:
-      'https://raw.githubusercontent.com/Charon-1978/cycle_note/main/update/latest.json',
+      'https://raw.githubusercontent.com/CharonCore/cycle_note/main/update/latest.json',
 );
 
 /// 镜像通道 manifest：jsDelivr（内容同源 GitHub，仅 CDN 不同）。
@@ -36,7 +36,7 @@ const String kUpdateUrlGitHub = String.fromEnvironment(
 const String kUpdateUrlMirror = String.fromEnvironment(
   'UPDATE_URL_MIRROR',
   defaultValue:
-      'https://cdn.jsdelivr.net/gh/Charon-1978/cycle_note@main/update/latest.json',
+      'https://cdn.jsdelivr.net/gh/CharonCore/cycle_note@main/update/latest.json',
 );
 
 /// 检测超时：主通道 5 秒，镜像 8 秒（多一层 CDN 跳转）。
